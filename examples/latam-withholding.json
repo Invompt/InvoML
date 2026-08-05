@@ -1,0 +1,56 @@
+{
+  "$invoml": "1.0",
+
+  "meta": {
+    "documentType": "invoice",
+    "number": "EXAMPLE-LATAM-WITHHOLDING",
+    "issueDate": "2026-03-28",
+    "dueDate": "2026-04-12",
+    "currency": "PYG",
+    "locale": "es-PY",
+    "tax": {
+      "system": "vat",
+      "categories": [
+        { "id": "iva10", "label": "IVA 10%", "rate": 10, "default": true },
+        { "id": "iva5", "label": "IVA 5%", "rate": 5 },
+        { "id": "exento", "label": "Exento", "rate": 0, "exempt": true },
+        { "id": "ret_renta", "label": "Retencion Renta (-)", "rate": 4.5, "withholding": true }
+      ]
+    }
+  },
+
+  "from": {
+    "content": "**FICTIONAL SAMPLE LAPACHO LEDGER SA**\nSample business location\nParaguay\n\nEmail: issuer@invoice.example.invalid\nTax ID: EXAMPLE-PARAGUAY-ISSUER"
+  },
+  "to": {
+    "content": "**FICTIONAL SAMPLE SUNBIRD BAZAAR**\nSample recipient location\nParaguay\n\nEmail: recipient@invoice.example.invalid\nTax ID: EXAMPLE-PARAGUAY-RECIPIENT"
+  },
+  "items": [
+    { "description": "Lote de cajas archivadoras - Marzo 2026", "quantity": 1, "unitPrice": 15000000, "amount": 15000000, "taxAmount": 1500000 },
+    { "description": "Licencia de software (exento)", "quantity": 1, "unitPrice": 2000000, "taxCategory": "exento", "amount": 2000000, "taxAmount": 0 }
+  ],
+
+  "payment": {
+    "title": "Payment details",
+    "content": "**Fictional payment details:** NOT-A-REAL account. Do not remit funds.\n**Reference:** EXAMPLE-LATAM-WITHHOLDING"
+  },
+  "notes": "FICTIONAL SAMPLE — NOT A TAX INVOICE. This document demonstrates Paraguay currency, tax, and locale behavior only.",
+
+  "style": { "template": "standard" },
+
+  "totals": {
+    "subtotal": 17000000,
+    "afterDiscounts": 17000000,
+    "taxDetails": [
+      { "category": "iva10", "label": "IVA 10%", "rate": 10, "base": 15000000, "amount": 1500000 },
+      { "category": "exento", "label": "Exento", "rate": 0, "base": 2000000, "amount": 0 },
+      { "category": "ret_renta", "label": "Retencion Renta (-)", "rate": 4.5, "base": 15000000, "amount": 675000, "withholding": true }
+    ],
+    "taxTotal": 1500000,
+    "total": 17825000,
+    "prepaidAmount": 5000000,
+    "amountDue": 12825000,
+    "currencySymbol": "Gs.",
+    "locale": "es-PY"
+  }
+}

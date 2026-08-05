@@ -1,0 +1,12 @@
+{
+  "subtotal": 10000,
+  "afterDiscounts": 10000,
+  "taxTotal": 1600,
+  "withholdingTotal": 1067,
+  "total": 10533,
+  "amountDue": 10533,
+  "taxDetails": [
+    {"category": "IVA", "base": 10000, "amount": 1600},
+    {"category": "WHT", "base": 10000, "amount": 1067}
+  ]
+}

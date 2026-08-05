@@ -1,0 +1,13 @@
+{
+  "subtotal": 5000,
+  "afterDiscounts": 5000,
+  "taxTotal": 600,
+  "withholdingTotal": 500,
+  "total": 5100,
+  "amountDue": 5100,
+  "taxDetails": [
+    {"category": "GST", "base": 5000, "amount": 250},
+    {"category": "PST", "base": 5000, "amount": 350},
+    {"category": "WHT", "base": 5000, "amount": 500}
+  ]
+}

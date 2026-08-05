@@ -1,0 +1,31 @@
+{
+  "$invoml": "1.0",
+  "meta": {
+    "documentType": "invoice",
+    "number": "EXAMPLE-VEC-21",
+    "issueDate": "2024-02-29",
+    "dueDate": "2024-03-31",
+    "currency": "SGD",
+    "locale": "en-SG"
+  },
+  "from": {
+    "name": "FICTIONAL SAMPLE STARLING PAPER PTE LTD",
+    "address": {
+      "lines": ["Sample business location", "Singapore"]
+    }
+  },
+  "to": {
+    "content": "**FICTIONAL SAMPLE RAIN TREE MARKET PTE LTD**\nSample recipient location\nSingapore\n\nEmail: recipient@invoice.example.invalid\nTax ID: EXAMPLE-SINGAPORE-RECIPIENT"
+  },
+  "items": [
+    {
+      "description": "Fictional sample storage crate",
+      "quantity": 1,
+      "unitPrice": 109
+    }
+  ],
+  "style": {
+    "dateFormat": "long"
+  },
+  "notes": "FICTIONAL SAMPLE — NOT A TAX INVOICE."
+}

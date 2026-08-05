@@ -1,0 +1,22 @@
+{
+  "$invoml": "1.0",
+  "meta": {
+    "documentType": "invoice",
+    "number": "VEC-07",
+    "issueDate": "2026-01-01",
+    "currency": "CAD",
+    "tax": {
+      "system": "ca-tax",
+      "compound": true,
+      "categories": [
+        {"id": "GST", "label": "GST", "rate": 5, "default": true},
+        {"id": "PST", "label": "PST", "rate": 7}
+      ]
+    }
+  },
+  "from": {"name": "Seller"},
+  "to": {"name": "Buyer"},
+  "items": [
+    {"description": "Item", "quantity": 1, "unitPrice": 1000}
+  ]
+}

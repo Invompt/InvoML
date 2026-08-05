@@ -1,0 +1,68 @@
+{
+  "$invoml": "1.0",
+
+  "meta": {
+    "documentType": "quote",
+    "number": "EXAMPLE-QUOTE-FREELANCE",
+    "issueDate": "2026-03-30",
+    "expiryDate": "2026-04-29",
+    "currency": "USD",
+    "locale": "en-US"
+  },
+
+  "from": {
+    "content": "**FICTIONAL SAMPLE HARBOR KITE LLC**\nSample business location\nUnited States\n\nEmail: issuer@invoice.example.invalid\nTax ID: EXAMPLE-UNITED-STATES-ISSUER"
+  },
+  "to": {
+    "content": "**FICTIONAL SAMPLE REDWOOD PANTRY LLC**\nSample recipient location\nUnited States\n\nEmail: recipient@invoice.example.invalid\nTax ID: EXAMPLE-UNITED-STATES-RECIPIENT"
+  },
+  "sections": {
+    "scope": {
+      "title": "Order Scope",
+      "content": "Fictional sample scope for demonstration only."
+    },
+    "timeline": {
+      "title": "Estimated Fulfilment",
+      "content": "| Batch | Lead time | Product |\n|---|---|---|\n| Sample cartons | 2 weeks | Color swatch crate |\n| Shelf markers | 2 weeks | Marker bundle |\n| Display panels | 3 weeks | Modular panel kits |\n| Storage inserts | 2 weeks | Divider sets |\n| Packing labels | 1 week | Label cartons |\n\n**Total estimated fulfilment:** 10 weeks from order confirmation. Dates are fictional and for schema demonstration only."
+    }
+  },
+
+  "items": [
+    {
+      "description": "Color swatch crate",
+      "quantity": 1,
+      "unitPrice": 4800.00
+    },
+    {
+      "description": "Shelf marker bundle",
+      "quantity": 1,
+      "unitPrice": 5600.00
+    },
+    {
+      "description": "Modular display panel kits",
+      "quantity": 1,
+      "unitPrice": 9200.00
+    },
+    {
+      "description": "Storage divider sets",
+      "quantity": 1,
+      "unitPrice": 6400.00
+    },
+    {
+      "description": "Packing label cartons",
+      "quantity": 1,
+      "unitPrice": 3200.00
+    }
+  ],
+
+  "payment": {
+    "title": "Payment details",
+    "content": "**Fictional payment details:** NOT-A-REAL account. Do not remit funds.\n**Reference:** EXAMPLE-QUOTE-FREELANCE"
+  },
+  "notes": "FICTIONAL SAMPLE — NOT A TAX INVOICE. This document demonstrates United States currency, tax, and locale behavior only.",
+
+  "style": {
+    "template": "standard",
+    "order": ["header", "from", "to", "section:scope", "section:timeline", "items", "totals", "payment", "notes"]
+  }
+}

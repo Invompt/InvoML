@@ -1,0 +1,90 @@
+{
+  "$invoml": "1.0",
+
+  "meta": {
+    "documentType": "invoice",
+    "number": "EXAMPLE-NIGERIA-VAT-WHT",
+    "issueDate": "2026-03-28",
+    "dueDate": "2026-04-27",
+    "currency": "NGN",
+    "locale": "en-NG",
+    "tax": {
+      "system": "vat",
+      "categories": [
+        { "id": "vat", "label": "VAT", "rate": 7.5, "default": true },
+        { "id": "wht", "label": "WHT (-)", "rate": 10, "withholding": true }
+      ]
+    }
+  },
+
+  "from": {
+    "content": "**FICTIONAL SAMPLE PALM LANTERN LTD**\nSample business location\nNigeria\n\nEmail: issuer@invoice.example.invalid\nTax ID: EXAMPLE-NIGERIA-ISSUER"
+  },
+  "to": {
+    "content": "**FICTIONAL SAMPLE INDIGO MARKET LTD**\nSample recipient location\nNigeria\n\nEmail: recipient@invoice.example.invalid\nTax ID: EXAMPLE-NIGERIA-RECIPIENT"
+  },
+  "sections": {
+    "scope": {
+      "title": "Scope of Services",
+      "content": "Fictional sample scope for demonstration only."
+    }
+  },
+
+  "items": [
+    {
+      "description": "Tamper-evident storage seal cartons",
+      "quantity": 1,
+      "unitPrice": 2500000.00,
+      "amount": 2500000.00,
+      "taxAmount": 187500.00
+    },
+    {
+      "description": "Lockable archive cabinet set",
+      "quantity": 1,
+      "unitPrice": 1800000.00,
+      "amount": 1800000.00,
+      "taxAmount": 135000.00
+    },
+    {
+      "description": "Printed warehouse safety cards",
+      "quantity": 3,
+      "unitPrice": 350000.00,
+      "unit": "sessions",
+      "amount": 1050000.00,
+      "taxAmount": 78750.00
+    },
+    {
+      "description": "Annual inventory scanner license",
+      "quantity": 1,
+      "unitPrice": 950000.00,
+      "amount": 950000.00,
+      "taxAmount": 71250.00
+    }
+  ],
+
+  "payment": {
+    "title": "Payment details",
+    "content": "**Fictional payment details:** NOT-A-REAL account. Do not remit funds.\n**Reference:** EXAMPLE-NIGERIA-VAT-WHT"
+  },
+  "notes": "FICTIONAL SAMPLE — NOT A TAX INVOICE. This document demonstrates Nigeria currency, tax, and locale behavior only.",
+
+  "totals": {
+    "subtotal": 6300000.00,
+    "afterDiscounts": 6300000.00,
+    "taxDetails": [
+      { "category": "vat", "label": "VAT", "rate": 7.5, "base": 6300000.00, "amount": 472500.00 },
+      { "category": "wht", "label": "WHT (-)", "rate": 10, "base": 6300000.00, "amount": 630000.00, "withholding": true }
+    ],
+    "taxTotal": 472500.00,
+    "total": 6142500.00,
+    "prepaidAmount": 0,
+    "amountDue": 6142500.00,
+    "currencySymbol": "₦",
+    "locale": "en-NG"
+  },
+
+  "style": {
+    "template": "standard",
+    "order": ["header", "from", "to", "section:scope", "items", "totals", "payment", "notes"]
+  }
+}

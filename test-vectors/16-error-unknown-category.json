@@ -1,0 +1,21 @@
+{
+  "$invoml": "1.0",
+  "meta": {
+    "documentType": "invoice",
+    "number": "VEC-16",
+    "issueDate": "2026-01-01",
+    "currency": "EUR",
+    "tax": {
+      "system": "eu-vat",
+      "categories": [
+        {"id": "S", "label": "Standard", "rate": 21, "default": true},
+        {"id": "R", "label": "Reduced", "rate": 10}
+      ]
+    }
+  },
+  "from": {"name": "Seller"},
+  "to": {"name": "Buyer"},
+  "items": [
+    {"description": "Item", "quantity": 1, "unitPrice": 100, "taxCategory": "X"}
+  ]
+}

@@ -1,0 +1,65 @@
+{
+  "$invoml": "1.0",
+
+  "meta": {
+    "documentType": "invoice",
+    "number": "EXAMPLE-JAPAN-CONSUMPTION-TAX",
+    "issueDate": "2026-03-28",
+    "dueDate": "2026-04-27",
+    "currency": "JPY",
+    "locale": "ja-JP",
+    "tax": {
+      "system": "vat",
+      "categories": [
+        { "id": "standard", "label": "Consumption Tax", "rate": 10, "default": true },
+        { "id": "reduced", "label": "Consumption Tax (Reduced)", "rate": 8 }
+      ]
+    }
+  },
+
+  "from": {
+    "content": "**FICTIONAL SAMPLE AOZORA KIOSK KK**\nSample business location\nJapan\n\nEmail: issuer@invoice.example.invalid\nTax ID: EXAMPLE-JAPAN-ISSUER"
+  },
+  "to": {
+    "content": "**FICTIONAL SAMPLE TANUKI MARKET KK**\nSample recipient location\nJapan\n\nEmail: recipient@invoice.example.invalid\nTax ID: EXAMPLE-JAPAN-RECIPIENT"
+  },
+  "sections": {
+    "scope": {
+      "title": "業務内容",
+      "content": "Fictional sample scope for demonstration only."
+    }
+  },
+
+  "items": [
+    { "description": "Ceramic counter display set", "quantity": 1, "unitPrice": 850000, "amount": 850000, "taxAmount": 85000 },
+    { "description": "Printed shelf marker collection", "quantity": 1, "unitPrice": 350000, "amount": 350000, "taxAmount": 35000 },
+    { "description": "Product label cards (500 sets)", "quantity": 500, "unitPrice": 180, "unit": "sets", "amount": 90000, "taxAmount": 9000 },
+    { "description": "Fictional sample snack boxes", "quantity": 4, "unitPrice": 8500, "unit": "boxes", "taxCategory": "reduced", "amount": 34000, "taxAmount": 2720 }
+  ],
+
+  "payment": {
+    "title": "Payment details",
+    "content": "**Fictional payment details:** NOT-A-REAL account. Do not remit funds.\n**Reference:** EXAMPLE-JAPAN-CONSUMPTION-TAX"
+  },
+  "notes": "FICTIONAL SAMPLE — NOT A TAX INVOICE. This document demonstrates Japan currency, tax, and locale behavior only.",
+
+  "totals": {
+    "subtotal": 1324000,
+    "afterDiscounts": 1324000,
+    "taxDetails": [
+      { "category": "standard", "label": "Consumption Tax (10%)", "rate": 10, "base": 1290000, "amount": 129000 },
+      { "category": "reduced", "label": "Consumption Tax Reduced (8%)", "rate": 8, "base": 34000, "amount": 2720 }
+    ],
+    "taxTotal": 131720,
+    "total": 1455720,
+    "prepaidAmount": 0,
+    "amountDue": 1455720,
+    "currencySymbol": "¥",
+    "locale": "ja-JP"
+  },
+
+  "style": {
+    "template": "standard",
+    "order": ["header", "from", "to", "section:scope", "items", "totals", "payment", "notes"]
+  }
+}

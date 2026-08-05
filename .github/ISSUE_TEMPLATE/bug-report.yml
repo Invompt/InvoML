@@ -1,0 +1,38 @@
+name: Bug report
+description: Report a reproducible problem in InvoML.
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not include credentials, access tokens, private invoice data, or customer data.
+  - type: textarea
+    id: summary
+    attributes:
+      label: What happened?
+      description: Describe the observed and expected behavior.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal reproduction
+      description: Provide the smallest safe input and steps needed to reproduce the problem.
+      placeholder: |
+        1. Install from an approved local source or verified release.
+        2. Run ...
+        3. Observe ...
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: InvoML version or source revision
+      description: Provide the package version or commit SHA, if known.
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Include Node.js version, operating system, and package manager version.

@@ -1,0 +1,97 @@
+{
+  "$invoml": "1.0",
+
+  "meta": {
+    "documentType": "invoice",
+    "number": "EXAMPLE-SWITZERLAND-VAT",
+    "issueDate": "2026-03-28",
+    "dueDate": "2026-04-27",
+    "currency": "CHF",
+    "locale": "de-CH",
+    "tax": {
+      "system": "vat",
+      "categories": [
+        { "id": "S", "label": "MWST 8.1%", "rate": 8.1, "default": true },
+        { "id": "R", "label": "MWST 2.6%", "rate": 2.6 },
+        { "id": "A", "label": "MWST 3.8%", "rate": 3.8 }
+      ]
+    }
+  },
+
+  "from": {
+    "content": "**FICTIONAL SAMPLE ALPINE PAPER AG**\nSample business location\nSwitzerland\n\nEmail: issuer@invoice.example.invalid\nTax ID: EXAMPLE-SWITZERLAND-ISSUER"
+  },
+  "to": {
+    "content": "**FICTIONAL SAMPLE CLOCKWORK MARKET AG**\nSample recipient location\nSwitzerland\n\nEmail: recipient@invoice.example.invalid\nTax ID: EXAMPLE-SWITZERLAND-RECIPIENT"
+  },
+  "sections": {
+    "scope": {
+      "title": "Leistungsbeschreibung",
+      "content": "Fictional sample scope for demonstration only."
+    }
+  },
+
+  "items": [
+    {
+      "description": "Modulare Regalboxen",
+      "quantity": 15,
+      "unitPrice": 2200.00,
+      "unit": "Kisten",
+      "amount": 33000.00,
+      "taxAmount": 2673.00
+    },
+    {
+      "description": "Gedruckte Regaletiketten",
+      "quantity": 25,
+      "unitPrice": 85.00,
+      "unit": "Stk.",
+      "taxCategory": "R",
+      "amount": 2125.00,
+      "taxAmount": 55.25
+    },
+    {
+      "description": "Isolierte Lagerhuellen",
+      "quantity": 10,
+      "unitPrice": 280.00,
+      "unit": "Stk.",
+      "taxCategory": "A",
+      "amount": 2800.00,
+      "taxAmount": 106.40
+    },
+    {
+      "description": "Inventar-Musterkatalog",
+      "quantity": 1,
+      "unitPrice": 4500.00,
+      "unit": "Stk.",
+      "amount": 4500.00,
+      "taxAmount": 364.50
+    }
+  ],
+
+  "payment": {
+    "title": "Payment details",
+    "content": "**Fictional payment details:** NOT-A-REAL account. Do not remit funds.\n**Reference:** EXAMPLE-SWITZERLAND-VAT"
+  },
+  "notes": "FICTIONAL SAMPLE — NOT A TAX INVOICE. This document demonstrates Switzerland currency, tax, and locale behavior only.",
+
+  "totals": {
+    "subtotal": 42425.00,
+    "afterDiscounts": 42425.00,
+    "taxDetails": [
+      { "category": "S", "label": "MWST 8.1%", "rate": 8.1, "base": 37500.00, "amount": 3037.50 },
+      { "category": "R", "label": "MWST 2.6%", "rate": 2.6, "base": 2125.00, "amount": 55.25 },
+      { "category": "A", "label": "MWST 3.8%", "rate": 3.8, "base": 2800.00, "amount": 106.40 }
+    ],
+    "taxTotal": 3199.15,
+    "total": 45624.15,
+    "prepaidAmount": 0,
+    "amountDue": 45624.15,
+    "currencySymbol": "CHF",
+    "locale": "de-CH"
+  },
+
+  "style": {
+    "template": "standard",
+    "order": ["header", "from", "to", "section:scope", "items", "totals", "payment", "notes"]
+  }
+}

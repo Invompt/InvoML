@@ -1,0 +1,23 @@
+{
+  "$invoml": "1.0",
+  "meta": {
+    "documentType": "invoice",
+    "number": "VEC-04",
+    "issueDate": "2026-01-01",
+    "currency": "EUR",
+    "tax": {
+      "system": "eu-vat",
+      "categories": [
+        {"id": "S", "label": "Standard", "rate": 20, "default": true},
+        {"id": "R", "label": "Reduced", "rate": 10}
+      ]
+    }
+  },
+  "from": {"name": "Seller"},
+  "to": {"name": "Buyer"},
+  "items": [
+    {"description": "Standard item", "quantity": 1, "unitPrice": 800, "taxCategory": "S"},
+    {"description": "Reduced item", "quantity": 1, "unitPrice": 200, "taxCategory": "R"}
+  ],
+  "discounts": [{"type": "percentage", "value": 10}]
+}
