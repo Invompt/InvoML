@@ -1,0 +1,60 @@
+{
+  "$invoml": "1.0",
+
+  "meta": {
+    "documentType": "invoice",
+    "number": "EXAMPLE-MULTI-FORMAT",
+    "issueDate": "2026-03-15",
+    "dueDate": "2026-04-14",
+    "currency": "EUR",
+    "locale": "de-DE",
+    "tax": {
+      "label": "USt",
+      "rate": 19
+    }
+  },
+
+  "from": {
+    "content": "**FICTIONAL SAMPLE SILVER FINCH GMBH**\nSample business location\nGermany\n\nEmail: issuer@invoice.example.invalid\nTax ID: EXAMPLE-GERMANY-ISSUER"
+  },
+
+  "to": {
+    "content": "**FICTIONAL SAMPLE BLUE CLOCK AG**\nSample recipient location\nGermany\n\nEmail: recipient@invoice.example.invalid\nTax ID: EXAMPLE-GERMANY-RECIPIENT"
+  },
+
+  "sections": {
+    "scope": {
+      "title": "Scope",
+      "content": "Fictional sample scope for demonstration only."
+    }
+  },
+
+  "items": [
+    { "description": "Counter display collection (3 variations)", "quantity": 1, "unitPrice": 2800.00, "amount": 2800.00, "taxAmount": 532.00 },
+    { "description": "Printed shelf marker booklet", "quantity": 1, "unitPrice": 1200.00, "amount": 1200.00, "taxAmount": 228.00 },
+    { "description": "Product label file package", "quantity": 1, "unitPrice": 400.00, "amount": 400.00, "taxAmount": 76.00 }
+  ],
+
+  "payment": {
+    "title": "Payment",
+    "content": "**Fictional payment details:** NOT-A-REAL account. Do not remit funds.\nReference: EXAMPLE-MULTI-FORMAT"
+  },
+
+  "notes": "FICTIONAL SAMPLE — NOT A TAX INVOICE. This document demonstrates German VAT behavior only.",
+
+  "totals": {
+    "subtotal": 4400.00,
+    "taxDetails": [
+      { "label": "USt (19%)", "rate": 19, "base": 4400.00, "amount": 836.00 }
+    ],
+    "taxTotal": 836.00,
+    "total": 5236.00,
+    "currencySymbol": "€",
+    "locale": "de-DE"
+  },
+
+  "style": {
+    "template": "standard",
+    "order": ["header", "from", "to", "section:scope", "items", "totals", "payment", "notes"]
+  }
+}

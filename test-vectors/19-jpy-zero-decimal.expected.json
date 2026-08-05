@@ -1,0 +1,10 @@
+{
+  "subtotal": 6800,
+  "afterDiscounts": 6800,
+  "taxTotal": 680,
+  "total": 7480,
+  "amountDue": 7480,
+  "taxDetails": [
+    {"category": "jct", "base": 6800, "amount": 680}
+  ]
+}

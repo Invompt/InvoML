@@ -1,0 +1,27 @@
+{
+  "$invoml": "1.0",
+  "meta": {
+    "documentType": "invoice",
+    "number": "EXAMPLE-STRUCTURED-PARTY-LOCALIZED-DATE",
+    "issueDate": "2024-02-29",
+    "dueDate": "2024-03-31",
+    "currency": "SGD",
+    "locale": "en-SG"
+  },
+  "from": {
+    "content": "**FICTIONAL SAMPLE STARLING PAPER PTE LTD**\nSample business location\nSingapore\n\nEmail: issuer@invoice.example.invalid\nTax ID: EXAMPLE-SINGAPORE-ISSUER"
+  },  "to": {
+    "content": "**FICTIONAL SAMPLE RAIN TREE MARKET PTE LTD**\nSample recipient location\nSingapore\n\nEmail: recipient@invoice.example.invalid\nTax ID: EXAMPLE-SINGAPORE-RECIPIENT"
+  },  "items": [
+    {
+      "description": "Fictional sample storage crate",
+      "quantity": 1,
+      "unitPrice": 109
+    }
+  ],
+  "notes": "FICTIONAL SAMPLE — NOT A TAX INVOICE. This document demonstrates Singapore currency, tax, and locale behavior only.",
+
+  "style": {
+    "dateFormat": "long"
+  }
+}

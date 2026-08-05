@@ -1,0 +1,61 @@
+{
+  "$invoml": "1.0",
+
+  "meta": {
+    "documentType": "invoice",
+    "number": "EXAMPLE-INDIA-IGST",
+    "issueDate": "2026-03-28",
+    "dueDate": "2026-04-27",
+    "currency": "INR",
+    "locale": "en-IN",
+    "tax": {
+      "label": "IGST",
+      "rate": 18
+    }
+  },
+
+  "from": {
+    "content": "**FICTIONAL SAMPLE MONSOON QUILL PVT LTD**\nSample business location\nIndia\n\nEmail: issuer@invoice.example.invalid\nTax ID: EXAMPLE-INDIA-ISSUER"
+  },
+  "to": {
+    "content": "**FICTIONAL SAMPLE LOTUS CRATE LTD**\nSample recipient location\nIndia\n\nEmail: recipient@invoice.example.invalid\nTax ID: EXAMPLE-INDIA-RECIPIENT"
+  },
+  "sections": {
+    "scope": {
+      "title": "Project Scope",
+      "content": "Fictional sample scope for demonstration only."
+    }
+  },
+
+  "items": [
+    { "description": "Warehouse shelving bundle", "quantity": 1, "unitPrice": 250000.00, "amount": 250000.00, "taxAmount": 45000.00 },
+    { "description": "Packing conveyor modules", "quantity": 3, "unitPrice": 180000.00, "amount": 540000.00, "taxAmount": 97200.00 },
+    { "description": "Inventory label printer set", "quantity": 1, "unitPrice": 320000.00, "amount": 320000.00, "taxAmount": 57600.00 },
+    { "description": "Replacement roller cartons", "quantity": 6, "unitPrice": 45000.00, "amount": 270000.00, "taxAmount": 48600.00 }
+  ],
+
+  "payment": {
+    "title": "Payment details",
+    "content": "**Fictional payment details:** NOT-A-REAL account. Do not remit funds.\n**Reference:** EXAMPLE-INDIA-IGST"
+  },
+  "notes": "FICTIONAL SAMPLE — NOT A TAX INVOICE. This document demonstrates India currency, tax, and locale behavior only.",
+
+  "totals": {
+    "subtotal": 1380000.00,
+    "afterDiscounts": 1380000.00,
+    "taxDetails": [
+      { "label": "IGST 18%", "rate": 18, "base": 1380000.00, "amount": 248400.00 }
+    ],
+    "taxTotal": 248400.00,
+    "total": 1628400.00,
+    "prepaidAmount": 0,
+    "amountDue": 1628400.00,
+    "currencySymbol": "₹",
+    "locale": "en-IN"
+  },
+
+  "style": {
+    "template": "standard",
+    "order": ["header", "from", "to", "section:scope", "items", "totals", "payment", "notes"]
+  }
+}

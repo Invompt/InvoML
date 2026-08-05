@@ -1,0 +1,15 @@
+{
+  "$invoml": "1.0",
+  "meta": {
+    "documentType": "invoice",
+    "number": "VEC-08",
+    "issueDate": "2026-01-01",
+    "currency": "AUD",
+    "tax": {"label": "GST", "rate": 10, "inclusive": true}
+  },
+  "from": {"name": "Seller"},
+  "to": {"name": "Buyer"},
+  "items": [
+    {"description": "Item", "quantity": 10, "unitPrice": 165}
+  ]
+}

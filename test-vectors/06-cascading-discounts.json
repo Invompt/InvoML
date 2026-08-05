@@ -1,0 +1,19 @@
+{
+  "$invoml": "1.0",
+  "meta": {
+    "documentType": "invoice",
+    "number": "VEC-06",
+    "issueDate": "2026-01-01",
+    "currency": "USD",
+    "tax": {"label": "VAT", "rate": 20}
+  },
+  "from": {"name": "Seller"},
+  "to": {"name": "Buyer"},
+  "items": [
+    {"description": "Item", "quantity": 1, "unitPrice": 1000}
+  ],
+  "discounts": [
+    {"type": "percentage", "value": 10, "label": "10% off"},
+    {"type": "percentage", "value": 5, "label": "5% off remainder"}
+  ]
+}

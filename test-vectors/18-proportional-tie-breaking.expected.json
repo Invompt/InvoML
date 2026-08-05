@@ -1,0 +1,12 @@
+{
+  "subtotal": 1000,
+  "afterDiscounts": 900,
+  "taxTotal": 105,
+  "total": 1005,
+  "amountDue": 1005,
+  "taxDetails": [
+    {"category": "A", "base": 300, "amount": 60},
+    {"category": "B", "base": 300, "amount": 30},
+    {"category": "C", "base": 300, "amount": 15}
+  ]
+}

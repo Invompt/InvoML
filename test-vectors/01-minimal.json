@@ -1,0 +1,7 @@
+{
+  "$invoml": "1.0",
+  "meta": {"documentType": "invoice", "number": "VEC-01", "issueDate": "2026-01-01", "currency": "USD"},
+  "from": {"name": "Seller"},
+  "to": {"name": "Buyer"},
+  "items": [{"description": "Item", "quantity": 1, "unitPrice": 100}]
+}

@@ -1,0 +1,11 @@
+{
+  "subtotal": 1000,
+  "afterDiscounts": 1000,
+  "taxTotal": 120,
+  "total": 1120,
+  "amountDue": 1120,
+  "taxDetails": [
+    {"category": "GST", "base": 1000, "amount": 50},
+    {"category": "PST", "base": 1000, "amount": 70}
+  ]
+}

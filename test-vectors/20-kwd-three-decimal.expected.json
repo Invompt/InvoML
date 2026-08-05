@@ -1,0 +1,10 @@
+{
+  "subtotal": 38.333,
+  "afterDiscounts": 38.333,
+  "taxTotal": 1.917,
+  "total": 40.25,
+  "amountDue": 40.25,
+  "taxDetails": [
+    {"category": "vat", "base": 38.333, "amount": 1.917}
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "$invoml": "1.0",
+  "meta": {
+    "documentType": "invoice",
+    "number": "EXAMPLE-PAYMENT-ADVICE",
+    "issueDate": "2026-07-30",
+    "dueDate": "2026-08-29",
+    "currency": "USD"
+  },
+  "from": {
+    "content": "**FICTIONAL SAMPLE BLUE COMET CO**\nSample business location\nInternational\n\nEmail: issuer@invoice.example.invalid\nTax ID: EXAMPLE-INTERNATIONAL-ISSUER"
+  },  "to": {
+    "content": "**FICTIONAL SAMPLE AMBER HARBOR CO**\nSample recipient location\nInternational\n\nEmail: recipient@invoice.example.invalid\nTax ID: EXAMPLE-INTERNATIONAL-RECIPIENT"
+  },  "items": [
+    {
+      "description": "Display tile shipment",
+      "quantity": 1,
+      "unitPrice": 2400
+    }
+  ],
+  "prepaidAmount": 400,
+  "paymentAdvice": {
+    "title": "Payment Advice",
+    "content": "Fictional sample payment advice. Do not remit funds."
+  },
+  "notes": "FICTIONAL SAMPLE — NOT A TAX INVOICE. This document demonstrates International currency, tax, and locale behavior only.",
+
+  "style": {
+    "template": "professional",
+    "order": [
+      "header",
+      "from",
+      "to",
+      "items",
+      "totals",
+      "paymentAdvice"
+    ],
+    "blocks": {
+      "from": { "span": "half" },
+      "to": { "span": "half" },
+      "paymentAdvice": {
+        "breakBefore": "page",
+        "keepTogether": true
+      }
+    }
+  }
+}

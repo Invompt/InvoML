@@ -1,0 +1,76 @@
+{
+  "$invoml": "1.0",
+
+  "meta": {
+    "documentType": "invoice",
+    "number": "EXAMPLE-MEXICO-IVA",
+    "issueDate": "2026-03-28",
+    "dueDate": "2026-04-27",
+    "currency": "MXN",
+    "locale": "es-MX",
+    "tax": {
+      "system": "vat",
+      "categories": [
+        { "id": "iva16", "label": "IVA 16%", "rate": 16, "default": true }
+      ]
+    }
+  },
+
+  "from": {
+    "content": "**FICTIONAL SAMPLE JACARANDA CRATE SA**\nSample business location\nMexico\n\nEmail: issuer@invoice.example.invalid\nTax ID: EXAMPLE-MEXICO-ISSUER"
+  },
+  "to": {
+    "content": "**FICTIONAL SAMPLE COMET PANTRY SA**\nSample recipient location\nMexico\n\nEmail: recipient@invoice.example.invalid\nTax ID: EXAMPLE-MEXICO-RECIPIENT"
+  },
+  "items": [
+    {
+      "description": "Paneles modulares para exhibicion",
+      "quantity": 1,
+      "unitPrice": 85000.00,
+      "amount": 85000.00,
+      "taxAmount": 13600.00
+    },
+    {
+      "description": "Maquetas de mostrador (5 unidades)",
+      "quantity": 5,
+      "unitPrice": 12000.00,
+      "discount": { "type": "percentage", "value": 10, "label": "Descuento por lealtad (10%)" },
+      "amount": 54000.00,
+      "taxAmount": 8640.00
+    },
+    {
+      "description": "Soportes reforzados para estanteria",
+      "quantity": 20,
+      "unitPrice": 1500.00,
+      "amount": 30000.00,
+      "taxAmount": 4800.00
+    },
+    {
+      "description": "Paquete de etiquetas para inventario",
+      "quantity": 1,
+      "unitPrice": 18000.00,
+      "amount": 18000.00,
+      "taxAmount": 2880.00
+    }
+  ],
+
+  "payment": {
+    "title": "Payment details",
+    "content": "**Fictional payment details:** NOT-A-REAL account. Do not remit funds.\n**Reference:** EXAMPLE-MEXICO-IVA"
+  },
+  "notes": "FICTIONAL SAMPLE — NOT A TAX INVOICE. This document demonstrates Mexico currency, tax, and locale behavior only.",
+
+  "style": { "template": "standard" },
+
+  "totals": {
+    "subtotal": 187000.00,
+    "afterDiscounts": 187000.00,
+    "taxDetails": [
+      { "category": "iva16", "label": "IVA 16%", "rate": 16, "base": 187000.00, "amount": 29920.00 }
+    ],
+    "taxTotal": 29920.00,
+    "total": 216920.00,
+    "currencySymbol": "$",
+    "locale": "es-MX"
+  }
+}

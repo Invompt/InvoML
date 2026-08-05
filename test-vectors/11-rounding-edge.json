@@ -1,0 +1,15 @@
+{
+  "$invoml": "1.0",
+  "meta": {
+    "documentType": "invoice",
+    "number": "VEC-11",
+    "issueDate": "2026-01-01",
+    "currency": "USD",
+    "tax": {"label": "VAT", "rate": 20}
+  },
+  "from": {"name": "Seller"},
+  "to": {"name": "Buyer"},
+  "items": [
+    {"description": "Item", "quantity": 3, "unitPrice": 33.335}
+  ]
+}

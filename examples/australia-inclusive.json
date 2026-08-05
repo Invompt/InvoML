@@ -1,0 +1,57 @@
+{
+  "$invoml": "1.0",
+
+  "meta": {
+    "documentType": "invoice",
+    "number": "EXAMPLE-AUSTRALIA-INCLUSIVE",
+    "issueDate": "2026-03-28",
+    "dueDate": "2026-04-11",
+    "expiryDate": "2026-04-28",
+    "currency": "AUD",
+    "locale": "en-AU",
+    "tax": {
+      "label": "GST",
+      "rate": 10,
+      "inclusive": true
+    }
+  },
+
+  "from": {
+    "content": "**FICTIONAL SAMPLE CORAL QUILL PTY**\nSample business location\nAustralia\n\nEmail: issuer@invoice.example.invalid\nTax ID: EXAMPLE-AUSTRALIA-ISSUER"
+  },
+  "to": {
+    "content": "**FICTIONAL SAMPLE WATTLE KIOSK PTY**\nSample recipient location\nAustralia\n\nEmail: recipient@invoice.example.invalid\nTax ID: EXAMPLE-AUSTRALIA-RECIPIENT"
+  },
+  "items": [
+    { "description": "Modular display panel crates", "quantity": 5, "unitPrice": 2200, "unit": "crates", "amount": 11000.00, "taxAmount": 1000.00 },
+    { "description": "Stackable storage bins", "quantity": 120, "unitPrice": 165, "unit": "units", "amount": 19800.00, "taxAmount": 1800.00 },
+    { "description": "Packing station kit", "quantity": 1, "unitPrice": 1650, "amount": 1650.00, "taxAmount": 150.00 }
+  ],
+
+  "payment": {
+    "title": "Payment details",
+    "content": "**Fictional payment details:** NOT-A-REAL account. Do not remit funds.\n**Reference:** EXAMPLE-AUSTRALIA-INCLUSIVE"
+  },
+  "notes": "FICTIONAL SAMPLE — NOT A TAX INVOICE. This document demonstrates Australia currency, tax, and locale behavior only.",
+
+  "style": { "template": "standard" },
+
+  "totals": {
+    "subtotal": 32450.00,
+    "afterDiscounts": 32450.00,
+    "taxDetails": [
+      {
+        "category": "gst",
+        "label": "GST (included)",
+        "rate": 10,
+        "base": 29500.00,
+        "amount": 2950.00,
+        "inclusive": true
+      }
+    ],
+    "taxTotal": 2950.00,
+    "total": 32450.00,
+    "currencySymbol": "$",
+    "locale": "en-AU"
+  }
+}

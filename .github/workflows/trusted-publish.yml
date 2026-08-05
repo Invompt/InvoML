@@ -1,0 +1,204 @@
+name: Trusted Publish
+
+on:
+  push:
+    tags:
+      - 'v1.0.0-alpha.21'
+
+concurrency:
+  group: npm-publish-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions: {}
+
+jobs:
+  validate-build:
+    if: github.event_name == 'push' && github.ref == 'refs/tags/v1.0.0-alpha.21' && github.event.repository.private == false
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      artifact-digest: ${{ steps.upload.outputs.artifact-digest }}
+      artifact-name: ${{ steps.package.outputs.artifact-name }}
+      commit-sha: ${{ steps.release.outputs.commit-sha }}
+      package-name: ${{ steps.release.outputs.name }}
+      package-version: ${{ steps.release.outputs.version }}
+      tarball: ${{ steps.package.outputs.tarball }}
+      tarball-sha256: ${{ steps.package.outputs.tarball-sha256 }}
+
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version: 22.22.0
+          registry-url: https://registry.npmjs.org
+          package-manager-cache: false
+
+      - name: Install the pinned npm client
+        run: npm install --global npm@11.11.0 --ignore-scripts
+
+      - name: Validate the exact public release reference
+        id: release
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          REF: ${{ github.ref }}
+          REPOSITORY_PRIVATE: ${{ github.event.repository.private }}
+          SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+
+          PACKAGE_NAME=$(node -p "require('./package.json').name")
+          PACKAGE_VERSION=$(node -p "require('./package.json').version")
+          test "$EVENT_NAME" = push
+          test "$REF" = refs/tags/v1.0.0-alpha.21
+          test "$REPOSITORY_PRIVATE" = false
+          test "$PACKAGE_NAME" = invoml
+          test "$PACKAGE_VERSION" = 1.0.0-alpha.21
+          test "$(node --version)" = v22.22.0
+          test "$(npm --version)" = 11.11.0
+
+          RESOLVED_COMMIT=$(git rev-parse "${SHA}^{commit}")
+          echo "commit-sha=$RESOLVED_COMMIT" >> "$GITHUB_OUTPUT"
+          echo "name=$PACKAGE_NAME" >> "$GITHUB_OUTPUT"
+          echo "version=$PACKAGE_VERSION" >> "$GITHUB_OUTPUT"
+
+      - run: npm run check:lock
+      - run: npm ci
+      - run: npm run build
+      - run: npm test
+      - run: npm run check:privacy
+
+      - name: Pack and hash the reviewed release artifact
+        id: package
+        shell: bash
+        env:
+          COMMIT_SHA: ${{ steps.release.outputs.commit-sha }}
+          PACKAGE_NAME: ${{ steps.release.outputs.name }}
+          PACKAGE_VERSION: ${{ steps.release.outputs.version }}
+        run: |
+          set -euo pipefail
+
+          mkdir -p release
+          npm pack --json --pack-destination release > package-pack.json
+          node scripts/assert-privacy.mjs --pack-report package-pack.json
+          node scripts/assert-package.mjs package-pack.json
+
+          TARBALL=$(node -p "require('./package-pack.json')[0].filename")
+          TARBALL_SHA256=$(sha256sum "release/$TARBALL" | cut -d ' ' -f 1)
+          printf '%s  %s\n' "$TARBALL_SHA256" "$TARBALL" > "release/$TARBALL.sha256"
+          mkdir -p release/unpacked
+          tar -xzf "release/$TARBALL" -C release/unpacked
+          node scripts/assert-privacy.mjs --tree release/unpacked/package
+
+          TARBALL="$TARBALL" TARBALL_SHA256="$TARBALL_SHA256" node --input-type=module <<'NODE'
+          import { writeFileSync } from 'node:fs'
+
+          writeFileSync('release/release-metadata.json', `${JSON.stringify({
+            commitSha: process.env.COMMIT_SHA,
+            packageName: process.env.PACKAGE_NAME,
+            packageVersion: process.env.PACKAGE_VERSION,
+            sha256: process.env.TARBALL_SHA256,
+            tarball: process.env.TARBALL,
+          }, null, 2)}\n`)
+          NODE
+
+          echo "artifact-name=release-package-$COMMIT_SHA" >> "$GITHUB_OUTPUT"
+          echo "tarball=$TARBALL" >> "$GITHUB_OUTPUT"
+          echo "tarball-sha256=$TARBALL_SHA256" >> "$GITHUB_OUTPUT"
+
+      - name: Upload the verified release artifact
+        id: upload
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ${{ steps.package.outputs.artifact-name }}
+          path: release/
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 0
+
+  publish:
+    needs: validate-build
+    runs-on: ubuntu-latest
+    environment: npm
+    permissions:
+      id-token: write
+
+    steps:
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version: 22.22.0
+          registry-url: https://registry.npmjs.org
+          package-manager-cache: false
+
+      - name: Install the pinned npm client
+        run: npm install --global npm@11.11.0 --ignore-scripts
+
+      - name: Verify trusted-publishing runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(node --version)" = v22.22.0
+          test "$(npm --version)" = 11.11.0
+
+      - name: Download the exact release artifact
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: ${{ needs.validate-build.outputs.artifact-name }}
+          path: release
+          digest-mismatch: error
+
+      - name: Verify artifact identity and SHA256
+        id: verify
+        shell: bash
+        env:
+          ARTIFACT_DIGEST: ${{ needs.validate-build.outputs.artifact-digest }}
+          COMMIT_SHA: ${{ needs.validate-build.outputs.commit-sha }}
+          PACKAGE_NAME: ${{ needs.validate-build.outputs.package-name }}
+          PACKAGE_VERSION: ${{ needs.validate-build.outputs.package-version }}
+          TARBALL: ${{ needs.validate-build.outputs.tarball }}
+          TARBALL_SHA256: ${{ needs.validate-build.outputs.tarball-sha256 }}
+        run: |
+          set -euo pipefail
+
+          [[ "$ARTIFACT_DIGEST" =~ ^[0-9a-f]{64}$ ]]
+          test "$PACKAGE_NAME" = invoml
+          test "$PACKAGE_VERSION" = 1.0.0-alpha.21
+          [[ "$TARBALL" =~ ^invoml-1\.0\.0-alpha\.21\.tgz$ ]]
+          [[ "$TARBALL_SHA256" =~ ^[0-9a-f]{64}$ ]]
+          test -f "release/$TARBALL"
+          test -f "release/$TARBALL.sha256"
+          test -f release/release-metadata.json
+
+          ACTUAL_SHA256=$(sha256sum "release/$TARBALL" | cut -d ' ' -f 1)
+          test "$ACTUAL_SHA256" = "$TARBALL_SHA256"
+          printf '%s  %s\n' "$TARBALL_SHA256" "$TARBALL" | (
+            cd release
+            sha256sum --check -
+          )
+
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict'
+          import { readFileSync } from 'node:fs'
+
+          assert.deepEqual(JSON.parse(readFileSync('release/release-metadata.json', 'utf8')), {
+            commitSha: process.env.COMMIT_SHA,
+            packageName: process.env.PACKAGE_NAME,
+            packageVersion: process.env.PACKAGE_VERSION,
+            sha256: process.env.TARBALL_SHA256,
+            tarball: process.env.TARBALL,
+          })
+          NODE
+
+          echo "tarball=release/$TARBALL" >> "$GITHUB_OUTPUT"
+
+      - name: Publish the verified release candidate
+        run: >-
+          npm publish "./${{ steps.verify.outputs.tarball }}"
+          --access public
+          --tag next
+          --ignore-scripts
