@@ -17,7 +17,7 @@ jobs:
         node-version: [20, 22]
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: ${{ matrix.node-version }}
           cache: npm
@@ -33,7 +33,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 22
           cache: npm
@@ -48,7 +48,7 @@ jobs:
           node scripts/assert-privacy.mjs --pack-report package-pack.json
           node scripts/assert-package.mjs package-pack.json
           node -e "const report = require('./package-pack.json')[0]; require('node:fs').appendFileSync(process.env.GITHUB_OUTPUT, 'tarball=' + report.filename + '\n')"
-      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 18
       - name: Exercise the packed package as a Node 18 consumer
@@ -76,7 +76,7 @@ jobs:
         run: |
           set -euo pipefail
           test "$(git -C source rev-parse HEAD)" = "$SOURCE_SHA"
-      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 22
           cache: npm
@@ -97,7 +97,7 @@ jobs:
           node scripts/assert-package.mjs "$PACKAGE_DIR/package-pack.json"
           TARBALL=$(node -p "require(process.argv[1])[0].filename" "$PACKAGE_DIR/package-pack.json")
           echo "tarball=$PACKAGE_DIR/$TARBALL" >> "$GITHUB_OUTPUT"
-      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 18
       - name: Exercise the exact-SHA package as a Node 18 consumer
