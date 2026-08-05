@@ -13,19 +13,16 @@ describe('README installation contract', () => {
     )
   })
 
-  it('describes the candidate as development-only without production or publication claims', () => {
-    expect(readme).toContain('### Development availability')
-    expect(readme).toContain('does not make a public registry')
-    expect(readme).toContain('production, or installation claim')
-    expect(readme).toContain('owner-authorized development channel')
-    expect(readme).toContain('do not substitute `latest`')
+  it('describes the published prerelease channel without treating latest as current', () => {
+    expect(readme).toContain('**Prerelease:** `invoml@1.0.0-alpha.21` is published on the `next` channel.')
+    expect(readme).toContain('Install it with\n> `@next` explicitly; `latest` currently points to an older prerelease.')
   })
 
-  it('permits only the explicit next development channel before external verification', () => {
+  it('uses the explicit next channel for the published prerelease', () => {
     expect(packageJson.version).toBe('1.0.0-alpha.21')
     expect(readme).not.toMatch(
       /(?:npm\s+(?:view|install|i)\s+|npx(?:\s+--yes)?\s+)@invompt\/invoml@\d+\.\d+\.\d+(?:-[^\s`]+)?/m,
     )
-    expect(readme).toContain('`npx invoml@next ...`')
+    expect(readme).toContain('npx invoml@next validate invoice.json')
   })
 })
