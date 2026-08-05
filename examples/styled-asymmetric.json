@@ -1,0 +1,55 @@
+{
+  "$invoml": "1.0",
+
+  "meta": {
+    "documentType": "invoice",
+    "number": "EXAMPLE-STYLED-ASYMMETRIC",
+    "issueDate": "2026-03-30",
+    "dueDate": "2026-04-29",
+    "currency": "EUR",
+    "tax": {
+      "label": "VAT",
+      "rate": 20
+    }
+  },
+
+  "from": {
+    "content": "**FICTIONAL SAMPLE VIOLET KITE SAS**\nSample business location\nFrance\n\nEmail: issuer@invoice.example.invalid\nTax ID: EXAMPLE-FRANCE-ISSUER"
+  },
+  "to": {
+    "content": "**FICTIONAL SAMPLE MOONLIGHT PANTRY SARL**\nSample recipient location\nFrance\n\nEmail: recipient@invoice.example.invalid\nTax ID: EXAMPLE-FRANCE-RECIPIENT"
+  },
+  "items": [
+    {
+      "description": "Retail display crate",
+      "quantity": 2,
+      "unitPrice": 2400.00,
+      "unit": "days"
+    },
+    {
+      "description": "Printed shelf marker set",
+      "quantity": 1,
+      "unitPrice": 6800.00
+    },
+    {
+      "description": "Product catalog booklet",
+      "quantity": 1,
+      "unitPrice": 1800.00
+    }
+  ],
+
+  "payment": {
+    "title": "Payment details",
+    "content": "**Fictional payment details:** NOT-A-REAL account. Do not remit funds.\n**Reference:** EXAMPLE-STYLED-ASYMMETRIC"
+  },
+  "notes": "FICTIONAL SAMPLE — NOT A TAX INVOICE. This document demonstrates France currency, tax, and locale behavior only.",
+
+  "style": {
+    "template": "minimal",
+    "blocks": {
+      "header": { "align": "center" },
+      "from": { "span": "two-thirds" },
+      "to": { "span": "one-third" }
+    }
+  }
+}

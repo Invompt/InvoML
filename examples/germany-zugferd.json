@@ -1,0 +1,65 @@
+{
+  "$invoml": "1.0",
+
+  "meta": {
+    "documentType": "invoice",
+    "number": "EXAMPLE-GERMANY-ZUGFERD",
+    "issueDate": "2026-03-28",
+    "dueDate": "2026-04-27",
+    "currency": "EUR",
+    "locale": "de-DE",
+    "tax": {
+      "system": "vat",
+      "categories": [
+        { "id": "S", "label": "USt 19%", "rate": 19, "default": true },
+        { "id": "AA", "label": "USt 7%", "rate": 7 }
+      ]
+    }
+  },
+
+  "from": {
+    "content": "**FICTIONAL SAMPLE COPPER FINCH GMBH**\nSample business location\nGermany\n\nEmail: issuer@invoice.example.invalid\nTax ID: EXAMPLE-GERMANY-ISSUER"
+  },
+  "to": {
+    "content": "**FICTIONAL SAMPLE RIVER CLOCK AG**\nSample recipient location\nGermany\n\nEmail: recipient@invoice.example.invalid\nTax ID: EXAMPLE-GERMANY-RECIPIENT"
+  },
+  "sections": {
+    "scope": {
+      "title": "Leistungsbeschreibung",
+      "content": "Fictional sample scope for demonstration only."
+    }
+  },
+
+  "items": [
+    { "description": "Warehouse label system annual license", "quantity": 1, "unitPrice": 18000.00, "amount": 18000.00, "taxAmount": 3420.00 },
+    { "description": "Barcode scanner bundles", "quantity": 40, "unitPrice": 180.00, "unit": "bundles", "amount": 7200.00, "taxAmount": 1368.00 },
+    { "description": "Printed inventory guide package", "quantity": 1, "unitPrice": 2400.00, "taxCategory": "AA", "amount": 2400.00, "taxAmount": 168.00 },
+    { "description": "Replacement label roll cartons", "quantity": 12, "unitPrice": 450.00, "unit": "cartons", "amount": 5400.00, "taxAmount": 1026.00 }
+  ],
+
+  "payment": {
+    "title": "Payment details",
+    "content": "**Fictional payment details:** NOT-A-REAL account. Do not remit funds.\n**Reference:** EXAMPLE-GERMANY-ZUGFERD"
+  },
+  "notes": "FICTIONAL SAMPLE — NOT A TAX INVOICE. This document demonstrates Germany currency, tax, and locale behavior only.",
+
+  "totals": {
+    "subtotal": 33000.00,
+    "afterDiscounts": 33000.00,
+    "taxDetails": [
+      { "category": "S", "label": "USt 19%", "rate": 19, "base": 30600.00, "amount": 5814.00 },
+      { "category": "AA", "label": "USt 7%", "rate": 7, "base": 2400.00, "amount": 168.00 }
+    ],
+    "taxTotal": 5982.00,
+    "total": 38982.00,
+    "prepaidAmount": 10000.00,
+    "amountDue": 28982.00,
+    "currencySymbol": "€",
+    "locale": "de-DE"
+  },
+
+  "style": {
+    "template": "standard",
+    "order": ["header", "from", "to", "section:scope", "items", "totals", "payment", "notes"]
+  }
+}

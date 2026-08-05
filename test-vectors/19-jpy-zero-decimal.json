@@ -1,0 +1,16 @@
+{
+  "$invoml": "1.0",
+  "meta": {
+    "documentType": "invoice",
+    "number": "VEC-19",
+    "issueDate": "2026-01-01",
+    "currency": "JPY",
+    "tax": {"label": "JCT", "rate": 10}
+  },
+  "from": {"name": "Seller"},
+  "to": {"name": "Buyer"},
+  "items": [
+    {"description": "Item A", "quantity": 3, "unitPrice": 1500},
+    {"description": "Item B", "quantity": 1, "unitPrice": 2300}
+  ]
+}

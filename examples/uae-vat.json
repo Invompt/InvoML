@@ -1,0 +1,61 @@
+{
+  "$invoml": "1.0",
+
+  "meta": {
+    "documentType": "invoice",
+    "number": "EXAMPLE-UAE-VAT",
+    "issueDate": "2026-03-28",
+    "dueDate": "2026-04-27",
+    "currency": "AED",
+    "locale": "ar-AE",
+    "tax": {
+      "label": "VAT",
+      "rate": 5
+    }
+  },
+
+  "from": {
+    "content": "**FICTIONAL SAMPLE DESERT QUILL LLC**\nSample business location\nUnited Arab Emirates\n\nEmail: issuer@invoice.example.invalid\nTax ID: EXAMPLE-UNITED-ARAB-EMIRATES-ISSUER"
+  },
+  "to": {
+    "content": "**FICTIONAL SAMPLE PEARL KIOSK LLC**\nSample recipient location\nUnited Arab Emirates\n\nEmail: recipient@invoice.example.invalid\nTax ID: EXAMPLE-UNITED-ARAB-EMIRATES-RECIPIENT"
+  },
+  "sections": {
+    "scope": {
+      "title": "Product Summary",
+      "content": "Fictional sample scope for demonstration only."
+    }
+  },
+
+  "items": [
+    { "description": "Pearl-tone display rack", "quantity": 1, "unitPrice": 15000.00, "amount": 15000.00, "taxAmount": 750.00 },
+    { "description": "Product label bundles", "quantity": 30, "unitPrice": 500.00, "amount": 15000.00, "taxAmount": 750.00 },
+    { "description": "Modular shelf units", "quantity": 3, "unitPrice": 8000.00, "amount": 24000.00, "taxAmount": 1200.00 },
+    { "description": "Inventory scanner packs", "quantity": 3, "unitPrice": 3000.00, "amount": 9000.00, "taxAmount": 450.00 }
+  ],
+
+  "payment": {
+    "title": "Payment details",
+    "content": "**Fictional payment details:** NOT-A-REAL account. Do not remit funds.\n**Reference:** EXAMPLE-UAE-VAT"
+  },
+  "notes": "FICTIONAL SAMPLE — NOT A TAX INVOICE. This document demonstrates United Arab Emirates currency, tax, and locale behavior only.",
+
+  "totals": {
+    "subtotal": 63000.00,
+    "afterDiscounts": 63000.00,
+    "taxDetails": [
+      { "label": "VAT 5%", "rate": 5, "base": 63000.00, "amount": 3150.00 }
+    ],
+    "taxTotal": 3150.00,
+    "total": 66150.00,
+    "prepaidAmount": 0,
+    "amountDue": 66150.00,
+    "currencySymbol": "AED",
+    "locale": "ar-AE"
+  },
+
+  "style": {
+    "template": "standard",
+    "order": ["header", "from", "to", "section:scope", "items", "totals", "payment", "notes"]
+  }
+}

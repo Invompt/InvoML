@@ -1,0 +1,25 @@
+{
+  "$invoml": "1.0",
+  "meta": {
+    "documentType": "invoice",
+    "number": "VEC-18",
+    "issueDate": "2026-01-01",
+    "currency": "USD",
+    "tax": {
+      "system": "custom",
+      "categories": [
+        {"id": "A", "label": "Category A", "rate": 20, "default": true},
+        {"id": "B", "label": "Category B", "rate": 10},
+        {"id": "C", "label": "Category C", "rate": 5}
+      ]
+    }
+  },
+  "from": {"name": "Seller"},
+  "to": {"name": "Buyer"},
+  "items": [
+    {"description": "Item A", "quantity": 1, "unitPrice": 333.33, "taxCategory": "A"},
+    {"description": "Item B", "quantity": 1, "unitPrice": 333.33, "taxCategory": "B"},
+    {"description": "Item C", "quantity": 1, "unitPrice": 333.34, "taxCategory": "C"}
+  ],
+  "discounts": [{"type": "fixed", "value": 100}]
+}

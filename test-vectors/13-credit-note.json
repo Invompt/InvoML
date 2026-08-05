@@ -1,0 +1,16 @@
+{
+  "$invoml": "1.0",
+  "meta": {
+    "documentType": "credit_note",
+    "number": "VEC-13",
+    "issueDate": "2026-01-01",
+    "currency": "EUR",
+    "creditNoteReference": "INV-001",
+    "tax": {"label": "VAT", "rate": 20}
+  },
+  "from": {"name": "Seller"},
+  "to": {"name": "Buyer"},
+  "items": [
+    {"description": "Returned item", "quantity": -1, "unitPrice": 75}
+  ]
+}

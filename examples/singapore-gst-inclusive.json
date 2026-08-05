@@ -1,0 +1,64 @@
+{
+  "$invoml": "1.0",
+  "meta": {
+    "documentType": "invoice",
+    "number": "EXAMPLE-SINGAPORE-GST-INCLUSIVE",
+    "issueDate": "2026-03-28",
+    "dueDate": "2026-04-11",
+    "currency": "SGD",
+    "locale": "en-SG",
+    "tax": {
+      "system": "gst",
+      "inclusive": true,
+      "categories": [
+        { "id": "gst9", "label": "GST 9%", "rate": 9, "default": true }
+      ]
+    }
+  },
+  "from": {
+    "content": "**FICTIONAL SAMPLE MERLION PAPER CO**\nSample business location\nSingapore\n\nEmail: issuer@invoice.example.invalid\nTax ID: EXAMPLE-SINGAPORE-ISSUER"
+  },
+  "to": {
+    "content": "**FICTIONAL SAMPLE ORCHID MARKET**\nSample recipient location\nSingapore\n\nEmail: recipient@invoice.example.invalid\nTax ID: EXAMPLE-SINGAPORE-RECIPIENT"
+  },
+  "items": [
+    {
+      "description": "Fictional sample storage crate",
+      "quantity": 1,
+      "unitPrice": 109,
+      "amount": 109,
+      "taxAmount": 9
+    },
+    {
+      "description": "Fictional sample label carton",
+      "quantity": 2,
+      "unitPrice": 54.5,
+      "amount": 109,
+      "taxAmount": 9
+    }
+  ],
+  "payment": {
+    "title": "Payment details",
+    "content": "**Fictional payment details:** NOT-A-REAL account. Do not remit funds.\n**Reference:** EXAMPLE-SINGAPORE-GST-INCLUSIVE"
+  },
+  "notes": "FICTIONAL SAMPLE — NOT A TAX INVOICE. This document demonstrates Singapore GST-inclusive behavior only.",
+  "style": { "template": "standard" },
+  "totals": {
+    "subtotal": 218,
+    "afterDiscounts": 218,
+    "taxDetails": [
+      {
+        "category": "gst9",
+        "label": "GST 9% (inclusive)",
+        "rate": 9,
+        "inclusive": true,
+        "base": 200,
+        "amount": 18
+      }
+    ],
+    "taxTotal": 18,
+    "total": 218,
+    "currencySymbol": "$",
+    "locale": "en-SG"
+  }
+}

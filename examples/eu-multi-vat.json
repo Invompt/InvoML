@@ -1,0 +1,75 @@
+{
+  "$invoml": "1.0",
+
+  "meta": {
+    "documentType": "invoice",
+    "number": "EXAMPLE-EU-MULTI-VAT",
+    "issueDate": "2026-03-28",
+    "dueDate": "2026-04-27",
+    "currency": "EUR",
+    "locale": "de-DE",
+    "tax": {
+      "system": "vat",
+      "categories": [
+        { "id": "S", "label": "MwSt. 19%", "rate": 19, "default": true },
+        { "id": "AA", "label": "MwSt. 7%", "rate": 7 },
+        { "id": "Z", "label": "Nullsatz", "rate": 0 },
+        { "id": "E", "label": "Steuerfrei", "rate": 0, "exempt": true }
+      ]
+    }
+  },
+
+  "from": {
+    "content": "**FICTIONAL SAMPLE AURORA CRATE BV**\nSample business location\nEuropean Union\n\nEmail: issuer@invoice.example.invalid\nTax ID: EXAMPLE-EUROPEAN-UNION-ISSUER"
+  },
+  "to": {
+    "content": "**FICTIONAL SAMPLE COBALT MARKET SARL**\nSample recipient location\nEuropean Union\n\nEmail: recipient@invoice.example.invalid\nTax ID: EXAMPLE-EUROPEAN-UNION-RECIPIENT"
+  },
+  "sections": {
+    "scope": {
+      "title": "Project Scope",
+      "content": "Fictional sample scope for demonstration only."
+    }
+  },
+
+  "items": [
+    { "description": "Insulated tote cartons", "quantity": 120, "unitPrice": 150, "unit": "cartons", "amount": 18000.00, "taxAmount": 3420.00 },
+    { "description": "Countertop label printers", "quantity": 80, "unitPrice": 140, "unit": "units", "amount": 11200.00, "taxAmount": 2128.00 },
+    { "description": "Receipt paper bundles", "quantity": 20, "unitPrice": 120, "unit": "bundles", "taxCategory": "AA", "amount": 2400.00, "taxAmount": 168.00 },
+    { "description": "Fictional sample catalog license", "quantity": 1, "unitPrice": 500, "taxCategory": "E", "amount": 500.00, "taxAmount": 0 }
+  ],
+
+  "discounts": [
+    { "type": "percentage", "value": 5, "label": "Long-term client discount" }
+  ],
+
+  "payment": {
+    "title": "Payment details",
+    "content": "**Fictional payment details:** NOT-A-REAL account. Do not remit funds.\n**Reference:** EXAMPLE-EU-MULTI-VAT"
+  },
+  "notes": "FICTIONAL SAMPLE — NOT A TAX INVOICE. This document demonstrates European Union currency, tax, and locale behavior only.",
+
+  "totals": {
+    "subtotal": 32100.00,
+    "discountDetails": [
+      { "label": "Long-term client discount (5%)", "amount": 1605.00 }
+    ],
+    "afterDiscounts": 30495.00,
+    "taxDetails": [
+      { "category": "S", "label": "MwSt. 19%", "rate": 19, "base": 27740.00, "amount": 5270.60 },
+      { "category": "AA", "label": "MwSt. 7%", "rate": 7, "base": 2280.00, "amount": 159.60 },
+      { "category": "E", "label": "Steuerfrei", "rate": 0, "base": 475.00, "amount": 0 }
+    ],
+    "taxTotal": 5430.20,
+    "total": 35925.20,
+    "prepaidAmount": 0,
+    "amountDue": 35925.20,
+    "currencySymbol": "€",
+    "locale": "de-DE"
+  },
+
+  "style": {
+    "template": "standard",
+    "order": ["header", "from", "to", "section:scope", "items", "totals", "payment", "notes"]
+  }
+}

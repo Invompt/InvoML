@@ -1,0 +1,24 @@
+{
+  "$invoml": "1.0",
+  "meta": {
+    "documentType": "invoice",
+    "number": "VEC-03",
+    "issueDate": "2026-01-01",
+    "currency": "EUR",
+    "tax": {
+      "system": "eu-vat",
+      "categories": [
+        {"id": "S", "label": "Standard", "rate": 21, "default": true},
+        {"id": "R", "label": "Reduced", "rate": 10},
+        {"id": "Z", "label": "Zero Rated", "rate": 0}
+      ]
+    }
+  },
+  "from": {"name": "Seller"},
+  "to": {"name": "Buyer"},
+  "items": [
+    {"description": "Standard item", "quantity": 1, "unitPrice": 1000, "taxCategory": "S"},
+    {"description": "Reduced item", "quantity": 10, "unitPrice": 15, "taxCategory": "R"},
+    {"description": "Zero item", "quantity": 2, "unitPrice": 200, "taxCategory": "Z"}
+  ]
+}

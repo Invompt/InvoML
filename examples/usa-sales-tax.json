@@ -1,0 +1,66 @@
+{
+  "$invoml": "1.0",
+
+  "meta": {
+    "documentType": "invoice",
+    "number": "EXAMPLE-USA-SALES-TAX",
+    "issueDate": "2026-03-28",
+    "dueDate": "2026-04-27",
+    "currency": "USD",
+    "locale": "en-US",
+    "tax": {
+      "label": "Sales Tax",
+      "rate": 8.25
+    }
+  },
+
+  "from": {
+    "content": "**FICTIONAL SAMPLE COPPER OWL LLC**\nSample business location\nUnited States\n\nEmail: issuer@invoice.example.invalid\nTax ID: EXAMPLE-UNITED-STATES-ISSUER"
+  },
+  "to": {
+    "content": "**FICTIONAL SAMPLE PINECONE MARKET LLC**\nSample recipient location\nUnited States\n\nEmail: recipient@invoice.example.invalid\nTax ID: EXAMPLE-UNITED-STATES-RECIPIENT"
+  },
+  "sections": {
+    "scope": {
+      "title": "Project Scope",
+      "content": "Fictional sample scope for demonstration only."
+    }
+  },
+
+  "items": [
+    { "description": "Folding retail display rack", "quantity": 1, "unitPrice": 4500.00, "amount": 4500.00, "taxAmount": 371.25 },
+    { "description": "Countertop display kits", "quantity": 80, "unitPrice": 150.00, "unit": "kits", "amount": 12000.00, "taxAmount": 990.00 },
+    { "description": "Barcode label bundles", "quantity": 40, "unitPrice": 175.00, "unit": "bundles", "amount": 7000.00, "taxAmount": 577.50 },
+    { "description": "Shelf marker pack", "quantity": 1, "unitPrice": 2200.00, "amount": 2200.00, "taxAmount": 181.50 }
+  ],
+
+  "discounts": [
+    { "type": "percentage", "value": 5, "label": "Early payment discount" }
+  ],
+
+  "payment": {
+    "title": "Payment details",
+    "content": "**Fictional payment details:** NOT-A-REAL account. Do not remit funds.\n**Reference:** EXAMPLE-USA-SALES-TAX"
+  },
+  "notes": "FICTIONAL SAMPLE — NOT A TAX INVOICE. This document demonstrates United States currency, tax, and locale behavior only.",
+
+  "totals": {
+    "subtotal": 25700.00,
+    "discountDetails": [
+      { "label": "Early payment discount (5%)", "amount": 1285.00 }
+    ],
+    "afterDiscounts": 24415.00,
+    "taxDetails": [
+      { "label": "Sales Tax (8.25%)", "rate": 8.25, "base": 24415.00, "amount": 2014.24 }
+    ],
+    "taxTotal": 2014.24,
+    "total": 26429.24,
+    "currencySymbol": "$",
+    "locale": "en-US"
+  },
+
+  "style": {
+    "template": "standard",
+    "order": ["header", "from", "to", "section:scope", "items", "totals", "payment", "notes"]
+  }
+}

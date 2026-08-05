@@ -1,0 +1,60 @@
+{
+  "$invoml": "1.0",
+
+  "meta": {
+    "documentType": "invoice",
+    "number": "EXAMPLE-CANADA-COMPOUND",
+    "issueDate": "2026-03-28",
+    "dueDate": "2026-04-27",
+    "currency": "CAD",
+    "locale": "en-CA",
+    "tax": {
+      "system": "compound",
+      "compound": true,
+      "categories": [
+        { "id": "gst", "label": "GST", "rate": 5 },
+        { "id": "pst", "label": "PST", "rate": 7 }
+      ]
+    }
+  },
+
+  "from": {
+    "content": "**FICTIONAL SAMPLE MAPLE LANTERN LTD**\nSample business location\nCanada\n\nEmail: issuer@invoice.example.invalid\nTax ID: EXAMPLE-CANADA-ISSUER"
+  },
+  "to": {
+    "content": "**FICTIONAL SAMPLE NORTHSTAR KIOSK LTD**\nSample recipient location\nCanada\n\nEmail: recipient@invoice.example.invalid\nTax ID: EXAMPLE-CANADA-RECIPIENT"
+  },
+  "items": [
+    { "description": "Weatherproof label roll cartons", "quantity": 40, "unitPrice": 200, "unit": "cartons", "amount": 8000.00 },
+    { "description": "Archival storage box pallets", "quantity": 24, "unitPrice": 225, "unit": "pallets", "amount": 5400.00 },
+    { "description": "Binder divider sets", "quantity": 16, "unitPrice": 175, "unit": "cases", "amount": 2800.00 }
+  ],
+
+  "discounts": [
+    { "type": "fixed", "value": 500, "label": "Referral credit" }
+  ],
+
+  "payment": {
+    "title": "Payment details",
+    "content": "**Fictional payment details:** NOT-A-REAL account. Do not remit funds.\n**Reference:** EXAMPLE-CANADA-COMPOUND"
+  },
+  "notes": "FICTIONAL SAMPLE — NOT A TAX INVOICE. This document demonstrates Canada currency, tax, and locale behavior only.",
+
+  "style": { "template": "standard" },
+
+  "totals": {
+    "subtotal": 16200.00,
+    "discountDetails": [
+      { "label": "Referral credit", "amount": 500.00 }
+    ],
+    "afterDiscounts": 15700.00,
+    "taxDetails": [
+      { "category": "gst", "label": "GST 5%", "rate": 5, "base": 15700.00, "amount": 785.00 },
+      { "category": "pst", "label": "PST 7%", "rate": 7, "base": 15700.00, "amount": 1099.00 }
+    ],
+    "taxTotal": 1884.00,
+    "total": 17584.00,
+    "currencySymbol": "$",
+    "locale": "en-CA"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "$invoml": "1.0",
+  "meta": {
+    "documentType": "invoice",
+    "number": "VEC-09",
+    "issueDate": "2026-01-01",
+    "currency": "EUR",
+    "tax": {
+      "system": "eu-vat",
+      "categories": [
+        {"id": "S", "label": "Standard", "rate": 21, "default": true},
+        {"id": "RC", "label": "Reverse Charge", "rate": 21, "reverseCharge": true}
+      ]
+    }
+  },
+  "from": {"name": "Seller"},
+  "to": {"name": "Buyer"},
+  "items": [
+    {"description": "Standard item", "quantity": 1, "unitPrice": 1000, "taxCategory": "S"},
+    {"description": "Reverse charge item", "quantity": 1, "unitPrice": 2000, "taxCategory": "RC"}
+  ]
+}

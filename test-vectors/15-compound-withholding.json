@@ -1,0 +1,23 @@
+{
+  "$invoml": "1.0",
+  "meta": {
+    "documentType": "invoice",
+    "number": "VEC-15",
+    "issueDate": "2026-01-01",
+    "currency": "CAD",
+    "tax": {
+      "system": "ca-tax",
+      "compound": true,
+      "categories": [
+        {"id": "GST", "label": "GST", "rate": 5, "default": true},
+        {"id": "PST", "label": "PST", "rate": 7},
+        {"id": "WHT", "label": "Withholding", "rate": 10, "withholding": true}
+      ]
+    }
+  },
+  "from": {"name": "Seller"},
+  "to": {"name": "Buyer"},
+  "items": [
+    {"description": "Storage crate", "quantity": 1, "unitPrice": 5000}
+  ]
+}

@@ -1,0 +1,11 @@
+node_modules/
+dist/
+test-results/
+.DS_Store
+*.js.map
+coverage/
+.env
+.env.*
+!.env.example
+*.pem
+*.key
