@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.0.0-alpha.22] - 2026-08-09
+
+### Changed
+- **Release candidate preparation** — package metadata, README guidance, and trusted-publish contracts are aligned for the next prerelease
+
 ## [1.0.0-alpha.21] - 2026-08-05
 
 ### Changed
