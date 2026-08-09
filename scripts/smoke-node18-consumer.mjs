@@ -202,7 +202,6 @@ if (parsed.success) {
       join(
         consumerDirectory,
         'node_modules',
-        '@invompt',
         'invoml',
         'package.json',
       ),
