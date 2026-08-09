@@ -13,13 +13,13 @@ describe('README installation contract', () => {
     )
   })
 
-  it('describes the published prerelease channel without treating latest as current', () => {
-    expect(readme).toContain('**Prerelease:** `invoml@1.0.0-alpha.22` is the next release candidate for the `next` channel.')
-    expect(readme).toContain('Install it with `@next` after authorized publication; `latest` remains on an older prerelease.')
+  it('describes the candidate channel without claiming publication from source', () => {
+    expect(readme).toContain('**Prerelease:** this source declares `invoml@1.0.0-alpha.23` for the `next` channel.')
+    expect(readme).toContain('`latest` intentionally remains on the older')
   })
 
   it('uses the explicit next channel for the published prerelease', () => {
-    expect(packageJson.version).toBe('1.0.0-alpha.22')
+    expect(packageJson.version).toBe('1.0.0-alpha.23')
     expect(readme).not.toMatch(
       /(?:npm\s+(?:view|install|i)\s+|npx(?:\s+--yes)?\s+)@invompt\/invoml@\d+\.\d+\.\d+(?:-[^\s`]+)?/m,
     )

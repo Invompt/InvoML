@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "declaration": false,
+    "noEmit": true,
+    "paths": {
+      "invoml": ["./src/index.ts"],
+      "invoml/invoml-v1.0.schema.json": ["./invoml-v1.0.schema.json"]
+    }
+  },
+  "include": ["examples/llm-providers/**/*.ts"]
+}

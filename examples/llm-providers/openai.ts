@@ -1,0 +1,74 @@
+import OpenAI from 'openai'
+import { parse, validate, calculate, toMarkdown } from 'invoml'
+
+const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+const model = requireEnv('OPENAI_MODEL')
+
+function requireEnv(name: string): string {
+  const value = process.env[name]
+  if (!value) throw new Error(`Set ${name} to a currently supported model`)
+  return value
+}
+
+const SYSTEM_PROMPT = `You are an invoice generation assistant. Given a description of a transaction,
+produce an InvoML v1.0 document as a JSON object.
+
+Rules:
+- Set "$invoml" to "1.0" — always required
+- Never calculate totals, subtotals, or tax amounts — leave items[].amount, items[].taxAmount,
+  and the entire "totals" object out of your response
+- Set currency as a three-letter ISO 4217 code (USD, EUR, GBP, MXN, etc.)
+- Set issueDate as YYYY-MM-DD
+- Set documentType to invoice, quote, credit_note, receipt, or estimate; include
+  creditNoteReference when documentType is credit_note
+- If tax applies, declare it in meta.tax using a simple { label, rate } for single-rate tax,
+  or { categories: [...] } for multi-rate tax
+- When using multi-rate tax, set taxCategory on each line item matching the category id
+- Use the "from" party for the seller, "to" for the buyer
+- Discounts go in items[].discount (line-level) or discounts[] (invoice-level), never as negative line items
+- Omit optional fields entirely when they have no value — never use null or empty strings
+- Style block names must be exact: "from", "to" (not "parties"), "section:scope" (not "scope")
+- The "content" field on from/to is the actual display text with Markdown formatting, not the word "markdown"`
+
+async function generateInvoice(userRequest: string): Promise<string> {
+  const response = await client.responses.create({
+    model,
+    input: [
+      { role: 'system', content: SYSTEM_PROMPT },
+      { role: 'user', content: userRequest },
+    ],
+    text: {
+      format: { type: 'json_object' },
+    },
+  })
+
+  const raw = response.output_text
+  if (!raw) throw new Error('Empty response from OpenAI')
+
+  // Parse and apply domain validation before calculation
+  const parsed = parse(raw)
+  if (!parsed.success) {
+    throw new Error(`InvoML parse error: ${parsed.errors.join(', ')}`)
+  }
+
+  const validation = validate(parsed.document)
+  const fatalIssues = validation.issues
+    .filter(issue => issue.level === 'error')
+    .map(issue => `${issue.code}: ${issue.message}`)
+  if (fatalIssues.length > 0) {
+    throw new Error(`InvoML validation error(s): ${fatalIssues.join('; ')}`)
+  }
+
+  // Compute all totals deterministically
+  const totals = calculate(parsed.document)
+
+  // Render to Markdown
+  return toMarkdown({ ...parsed.document, totals })
+}
+
+// Usage
+const markdown = await generateInvoice(
+  'Create an invoice from FICTIONAL SAMPLE LANTERN PAPER CO to FICTIONAL SAMPLE AMBER MARKET CO for 10 cartons of archival folders at $200 per carton. ' +
+  'Add 8.25% sales tax. Due in 30 days.'
+)
+console.log(markdown)

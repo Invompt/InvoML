@@ -214,7 +214,7 @@ display the leading Markdown markers.
 Inline Markdown fields such as party names and item descriptions do not support
 block headings or lists.
 
-### 2.9 Totals
+### 2.10 Totals
 
 The `totals` object, when present in a stored or transmitted document, records the calculated financial summary. It MUST be produced by a conformant calculator (Section 5) and MUST NOT be authored by hand. Every `totals` field present in an input to the calculator is ignored during calculation. `prepaidAmount` is accepted only at the document root.
 
@@ -939,7 +939,7 @@ A conformant calculator:
 - MUST use half-up rounding at every intermediate step
 - MUST use arbitrary-precision decimal arithmetic for all intermediate values (minimum 50 significant digits)
 - MUST apply proportional discount allocation with the last-category tie-breaking rule
-- MUST produce `taxTotal`, `withholdingTotal`, `total`, and `amountDue` that match all 16 normative test vectors (vectors 01–15 and 18; vectors 16–17 are error cases)
+- MUST produce `taxTotal`, `withholdingTotal`, `total`, and `amountDue` that match all 19 successful normative test vectors (vectors 01–15 and 18–21; vectors 16–17 are error cases)
 - MUST raise an error for unknown tax categories and missing default categories
 - MUST ignore every `totals` field in the input document, including cached `prepaidAmount`
 - SHOULD produce `taxDetails` and `discountDetails` matching the expected output of test vectors where those fields are specified
@@ -975,7 +975,7 @@ For error vectors, the expected output is `{ "error": true }`. The implementatio
 
 ### 10.2 Normative Vectors
 
-The following 18 test vectors are normative. A conformant calculator MUST produce output matching each vector.
+The following 21 test vectors are normative. A conformant calculator MUST produce output matching each successful vector and MUST raise the specified error for each error vector.
 
 | Vector | Name | What it tests |
 |---|---|---|
@@ -997,6 +997,9 @@ The following 18 test vectors are normative. A conformant calculator MUST produc
 | VEC-16 | error-unknown-category | UNKNOWN_CATEGORY error case |
 | VEC-17 | error-no-default | NO_DEFAULT_CATEGORY error case |
 | VEC-18 | proportional-tie-breaking | Three-category proportional allocation with rounding residual |
+| VEC-19 | jpy-zero-decimal | JPY zero-decimal currency rounding |
+| VEC-20 | kwd-three-decimal | KWD three-decimal currency rounding |
+| VEC-21 | structured-party-localized-date | Structured and free-form parties with localized long-form dates |
 
 ### 10.3 Key Vector Details
 
@@ -1011,3 +1014,9 @@ The following 18 test vectors are normative. A conformant calculator MUST produc
 **VEC-11 (rounding):** 3 × 33.335 = 100.005. Half-up rounds the digit 5 at the third decimal place up, giving 100.01.
 
 **VEC-18 (tie-breaking):** Three equal-weight categories, fixed discount of 100. First two categories each get 33.33; last category absorbs residual 33.34 to ensure sum of bases equals afterDiscounts exactly.
+
+**VEC-19 (JPY):** Uses a zero-decimal ISO 4217 currency. Line amounts, tax, and totals are rounded to whole yen.
+
+**VEC-20 (KWD):** Uses a three-decimal ISO 4217 currency. Line amounts, tax, and totals retain three decimal places.
+
+**VEC-21 (parties and dates):** Covers a structured issuer, a free-form recipient, the `en-SG` locale, and `style.dateFormat: "long"`. Its totals remain a normative calculator result; party and date fields also exercise document validation and rendering.

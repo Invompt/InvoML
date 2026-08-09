@@ -57,31 +57,27 @@ describe('validate()', () => {
     const result = validate(doc)
     expect(result.valid).toBe(false)
     expect(result.issues).toContainEqual(
-      expect.objectContaining({ level: 'error', code: 'NON_POSITIVE_QUANTITY', path: 'items[1].quantity' }),
+      expect.objectContaining({ level: 'error', code: 'ZERO_QUANTITY', path: 'items[1].quantity' }),
     )
   })
 
-  it('errors on negative quantity and reports correct path', () => {
+  it('allows negative quantity as a signed domain-valid value', () => {
     const doc = clone(validDoc)
     doc.items = [
       { description: 'First', quantity: 1, unitPrice: 10 },
       { description: 'Bad', quantity: -5, unitPrice: 20 },
     ]
     const result = validate(doc)
-    expect(result.valid).toBe(false)
-    expect(result.issues).toContainEqual(
-      expect.objectContaining({ level: 'error', code: 'NON_POSITIVE_QUANTITY', path: 'items[1].quantity' }),
-    )
+    expect(result.valid).toBe(true)
+    expect(result.issues.filter(issue => issue.path === 'items[1].quantity').length).toBe(0)
   })
 
-  it('errors on negative unit price', () => {
+  it('allows negative unit price as a signed domain-valid value', () => {
     const doc = clone(validDoc)
     doc.items = [{ description: 'Widget', quantity: 2, unitPrice: -10 }]
     const result = validate(doc)
-    expect(result.valid).toBe(false)
-    expect(result.issues).toContainEqual(
-      expect.objectContaining({ level: 'error', code: 'NEGATIVE_UNIT_PRICE', path: 'items[0].unitPrice' }),
-    )
+    expect(result.valid).toBe(true)
+    expect(result.issues.filter(issue => issue.path === 'items[0].unitPrice').length).toBe(0)
   })
 
   it('allows zero unit price (free items are valid)', () => {

@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.0.0-alpha.23] - 2026-08-09
+
+### Changed
+- **Signed credit values** — align domain validation with the specification by allowing signed quantities and unit prices while continuing to reject zero quantities and non-finite values
+- **LLM validation boundary** — enforce `parse() → validate() → calculate()` in typechecked provider examples and documentation
+- **Release controls** — pin source CI to Node.js 22.22.0, enforce compare-based default-branch ancestry in trusted publishing, and bind the candidate to `1.0.0-alpha.23` on `next`
+
 ## [1.0.0-alpha.22] - 2026-08-09
 
 ### Changed

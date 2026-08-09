@@ -3,7 +3,7 @@ name: Trusted Publish
 on:
   push:
     tags:
-      - 'v1.0.0-alpha.22'
+      - 'v1.0.0-alpha.23'
 
 concurrency:
   group: npm-publish-${{ github.ref }}
@@ -13,7 +13,7 @@ permissions: {}
 
 jobs:
   validate-build:
-    if: github.event_name == 'push' && github.ref == 'refs/tags/v1.0.0-alpha.22' && github.event.repository.private == false
+    if: github.event_name == 'push' && github.ref == 'refs/tags/v1.0.0-alpha.23' && github.event.repository.private == false
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -55,10 +55,10 @@ jobs:
           PACKAGE_NAME=$(node -p "require('./package.json').name")
           PACKAGE_VERSION=$(node -p "require('./package.json').version")
           test "$EVENT_NAME" = push
-          test "$REF" = refs/tags/v1.0.0-alpha.22
+          test "$REF" = refs/tags/v1.0.0-alpha.23
           test "$REPOSITORY_PRIVATE" = false
           test "$PACKAGE_NAME" = invoml
-          test "$PACKAGE_VERSION" = 1.0.0-alpha.22
+          test "$PACKAGE_VERSION" = 1.0.0-alpha.23
           test "$(node --version)" = v22.22.0
           test "$(npm --version)" = 11.11.0
 
@@ -72,6 +72,14 @@ jobs:
       - run: npm run build
       - run: npm test
       - run: npm run check:privacy
+      - name: Verify release lineage for default-branch ancestry
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_ACTOR: ${{ github.actor }}
+          COMMIT_SHA: ${{ steps.release.outputs.commit-sha }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: node scripts/release-gate.mjs
 
       - name: Pack and hash the reviewed release artifact
         id: package
@@ -167,8 +175,8 @@ jobs:
 
           [[ "$ARTIFACT_DIGEST" =~ ^[0-9a-f]{64}$ ]]
           test "$PACKAGE_NAME" = invoml
-          test "$PACKAGE_VERSION" = 1.0.0-alpha.22
-          [[ "$TARBALL" =~ ^invoml-1\.0\.0-alpha\.22\.tgz$ ]]
+          test "$PACKAGE_VERSION" = 1.0.0-alpha.23
+          [[ "$TARBALL" =~ ^invoml-1\.0\.0-alpha\.23\.tgz$ ]]
           [[ "$TARBALL_SHA256" =~ ^[0-9a-f]{64}$ ]]
           test -f "release/$TARBALL"
           test -f "release/$TARBALL.sha256"

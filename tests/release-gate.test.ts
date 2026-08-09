@@ -1,73 +1,61 @@
 import { describe, expect, it, vi } from 'vitest'
-import {
-  findReleasePull,
-  permissionAllowsWrite,
-  runReleaseGate,
-} from '../scripts/release-gate.mjs'
+import { permissionAllowsWrite, runReleaseGate } from '../scripts/release-gate.mjs'
 
-type PullOptions = {
-  mergedAt?: string | null
-  base?: string
-  headRepository?: string
-  mergeCommitSha?: string
-  number?: number
+type Comparison = {
+  status: string
+  base_commit: { sha: string }
+  merge_base_commit: { sha: string }
 }
 
 type GateOptions = {
   permission?: string
-  pulls?: ReturnType<typeof pull>[]
+  comparison?: Comparison
   repository?: string
+  commitSha?: string
+  defaultBranch?: string
 }
 
-function pull({
-  mergedAt = '2026-07-27T00:00:00Z',
-  base = 'main',
-  headRepository = 'Invompt/InvoML',
-  mergeCommitSha = 'merge-sha',
-  number = 14,
-}: PullOptions = {}) {
+function compareResponse(overrides: Partial<Comparison> = {}) {
   return {
-    merged_at: mergedAt,
-    base: { ref: base },
-    head: { repo: { full_name: headRepository } },
-    merge_commit_sha: mergeCommitSha,
-    number,
+    status: 'ahead',
+    base_commit: { sha: 'merge-sha' },
+    merge_base_commit: { sha: 'merge-sha' },
+    ...overrides,
   }
-}
-
-function releasePull(pulls = [pull()]) {
-  return findReleasePull({
-    pulls,
-    repository: 'Invompt/InvoML',
-    defaultBranch: 'main',
-    commitSha: 'merge-sha',
-  })
 }
 
 async function executeGate({
   permission = 'write',
-  pulls = [pull()],
+  comparison = compareResponse(),
   repository = 'Invompt/InvoML',
+  commitSha = 'merge-sha',
+  defaultBranch = 'main',
 }: GateOptions = {}) {
   const requests: string[] = []
+
   const request = vi.fn(async (path: string, token: string) => {
     requests.push(path)
     expect(token).toBe('test-token')
+
     if (path.endsWith('/permission')) {
       return { permission }
     }
-    if (path.includes('/commits/merge-sha/pulls')) {
-      return pulls
+
+    if (path.includes('/compare/')) {
+      return comparison
     }
+
     throw new Error(`Unexpected request: ${path}`)
   })
+
   const log = { info: vi.fn() }
+
   const result = await runReleaseGate({
     token: 'test-token',
     repository,
     actor: 'release-actor',
-    commitSha: 'merge-sha',
-    defaultBranch: 'main',
+    commitSha,
+    defaultBranch,
     request,
     log,
   })
@@ -76,90 +64,13 @@ async function executeGate({
 }
 
 describe('release lineage gate executable', () => {
-  it('accepts the exact merge result of a same-repository PR to main', async () => {
-    const { log, requests, result } = await executeGate()
-
-    expect(result).toEqual({
-      actorPermission: 'write',
-      pullNumber: 14,
-    })
-    expect(requests).toEqual([
-      '/repos/Invompt/InvoML/collaborators/release-actor/permission',
-      '/repos/Invompt/InvoML/commits/merge-sha/pulls?per_page=100&page=1',
-    ])
-    expect(log.info).toHaveBeenCalledWith(
-      expect.stringContaining('Release lineage verified through PR #14'),
-    )
-  })
-
-  it('rejects an unmerged PR', async () => {
-    await expect(
-      executeGate({ pulls: [pull({ mergedAt: null })] }),
-    ).rejects.toThrow(/not the exact merge result/)
-  })
-
-  it('rejects a PR targeting the wrong base', async () => {
-    await expect(
-      executeGate({ pulls: [pull({ base: 'staging' })] }),
-    ).rejects.toThrow(/not the exact merge result/)
-  })
-
-  it('rejects a PR from another repository', async () => {
-    await expect(
-      executeGate({ pulls: [pull({ headRepository: 'attacker/InvoML' })] }),
-    ).rejects.toThrow(/not the exact merge result/)
-  })
-
-  it('rejects a PR whose merge result is not the staged commit', async () => {
-    await expect(
-      executeGate({ pulls: [pull({ mergeCommitSha: 'different-sha' })] }),
-    ).rejects.toThrow(/not the exact merge result/)
-  })
-
-  it('rejects a direct-main commit with no merged PR lineage', async () => {
-    await expect(executeGate({ pulls: [] })).rejects.toThrow(
-      /not the exact merge result/,
-    )
-  })
-
-  it.each(['none', 'read'])(
-    'rejects an actor with %s permission before reading PR lineage',
-    async permission => {
-      await expect(executeGate({ permission })).rejects.toThrow(
-        /write or admin is required/,
-      )
-    },
-  )
-
-  it.each(['write', 'admin'])(
-    'accepts an actor with %s permission',
-    async permission => {
-      await expect(executeGate({ permission })).resolves.toMatchObject({
-        result: { actorPermission: permission },
-      })
-    },
-  )
-
-  it('rejects an invalid repository identity before making a request', async () => {
-    await expect(executeGate({ repository: 'invalid' })).rejects.toThrow(
-      /owner\/repo format/,
-    )
-  })
-
-  it('paginates associated PRs before matching exact lineage', async () => {
-    const firstPage = Array.from({ length: 100 }, (_, index) =>
-      pull({
-        base: 'staging',
-        mergeCommitSha: `other-${index}`,
-        number: index + 1,
-      }),
-    )
-    const request = vi
-      .fn()
-      .mockResolvedValueOnce({ permission: 'admin' })
-      .mockResolvedValueOnce(firstPage)
-      .mockResolvedValueOnce([pull({ number: 101 })])
-
+  it.each([
+    ['GITHUB_TOKEN', { token: '' }],
+    ['GITHUB_REPOSITORY', { repository: '' }],
+    ['GITHUB_ACTOR', { actor: '' }],
+    ['COMMIT_SHA', { commitSha: '' }],
+    ['DEFAULT_BRANCH', { defaultBranch: '' }],
+  ])('fails closed when %s is missing', async (name, overrides) => {
     await expect(
       runReleaseGate({
         token: 'test-token',
@@ -167,14 +78,80 @@ describe('release lineage gate executable', () => {
         actor: 'release-actor',
         commitSha: 'merge-sha',
         defaultBranch: 'main',
-        request,
+        request: vi.fn(),
         log: { info: vi.fn() },
+        ...overrides,
       }),
-    ).resolves.toEqual({
-      actorPermission: 'admin',
-      pullNumber: 101,
+    ).rejects.toThrow(`${name} is required`)
+  })
+
+  it('accepts commit that is on the default-branch ancestry', async () => {
+    const { result, requests } = await executeGate()
+
+    expect(result).toEqual({
+      actorPermission: 'write',
+      branch: 'main',
+      comparison: 'ahead',
     })
-    expect(request).toHaveBeenCalledTimes(3)
+    expect(requests).toEqual([
+      '/repos/Invompt/InvoML/collaborators/release-actor/permission',
+      '/repos/Invompt/InvoML/compare/merge-sha...main',
+    ])
+    expect(result.branch).toBe('main')
+  })
+
+  it('accepts an exact identical head comparison', async () => {
+    const comparison = compareResponse({
+      status: 'identical',
+      base_commit: { sha: 'merge-sha' },
+      merge_base_commit: { sha: 'merge-sha' },
+    })
+    await expect(
+      executeGate({ comparison }),
+    ).resolves.toMatchObject({
+      result: { actorPermission: 'write', branch: 'main', comparison: 'identical' },
+    })
+  })
+
+  it('rejects a commit that is not the default-branch comparison head', async () => {
+    const comparison = compareResponse({
+      status: 'ahead',
+      base_commit: { sha: 'other-sha' },
+    })
+    await expect(
+      executeGate({ comparison }),
+    ).rejects.toThrow('is not the compared commit on main or a verified ancestor of its current head')
+  })
+
+  it('rejects a comparison without acceptable status', async () => {
+    const comparison = compareResponse({ status: 'behind' })
+    await expect(
+      executeGate({ comparison }),
+    ).rejects.toThrow('is not the compared commit on main or a verified ancestor of its current head')
+  })
+
+  it.each(['none', 'read'])(
+    'rejects an actor with %s permission before checking ancestry',
+    async permission => {
+      await expect(
+        executeGate({ permission }),
+      ).rejects.toThrow(/write or admin is required/)
+    },
+  )
+
+  it.each(['write', 'admin'])(
+    'accepts an actor with %s permission',
+    async permission => {
+      await expect(
+        executeGate({ permission }),
+      ).resolves.toMatchObject({ result: { actorPermission: permission, branch: 'main' } })
+    },
+  )
+
+  it('rejects an invalid repository identity before making requests', async () => {
+    await expect(
+      executeGate({ repository: 'invalid' }),
+    ).rejects.toThrow(/owner\/repo format/)
   })
 
   it.each([
@@ -184,9 +161,5 @@ describe('release lineage gate executable', () => {
     ['admin', true],
   ])('maps the %s permission tier to eligible=%s', (permission, expected) => {
     expect(permissionAllowsWrite(permission)).toBe(expected)
-  })
-
-  it('keeps the pure lineage matcher aligned with the executable', () => {
-    expect(releasePull()?.number).toBe(14)
   })
 })

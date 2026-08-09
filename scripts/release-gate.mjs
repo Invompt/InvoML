@@ -6,18 +6,10 @@ export function permissionAllowsWrite(permission) {
   return WRITE_PERMISSIONS.has(permission)
 }
 
-export function findReleasePull({
-  pulls,
-  repository,
-  defaultBranch,
-  commitSha,
-}) {
-  return pulls.find(pull =>
-    pull.merged_at
-    && pull.base?.ref === defaultBranch
-    && pull.head?.repo?.full_name === repository
-    && pull.merge_commit_sha === commitSha
-  )
+export function commitBelongsToDefaultBranch(compare, commitSha) {
+  return ['ahead', 'identical'].includes(compare?.status)
+    && compare?.base_commit?.sha === commitSha
+    && compare?.merge_base_commit?.sha === commitSha
 }
 
 async function githubRequest(path, token) {
@@ -80,47 +72,28 @@ export async function runReleaseGate({
     )
   }
 
-  const pulls = []
-  for (let page = 1; ; page += 1) {
-    const pagePulls = await request(
-      `/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}`
-        + `/commits/${encodeURIComponent(releaseCommit)}/pulls`
-        + `?per_page=100&page=${page}`,
-      releaseToken,
-    )
+  const comparison = await request(
+    `/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}`
+      + `/compare/${encodeURIComponent(releaseCommit)}...${encodeURIComponent(releaseBranch)}`,
+    releaseToken,
+  )
 
-    if (!Array.isArray(pagePulls)) {
-      throw new Error('GitHub commit pull response must be an array')
-    }
-
-    pulls.push(...pagePulls)
-    if (pagePulls.length < 100) {
-      break
-    }
-  }
-
-  const releasePull = findReleasePull({
-    pulls,
-    repository: releaseRepository,
-    defaultBranch: releaseBranch,
-    commitSha: releaseCommit,
-  })
-
-  if (!releasePull) {
+  if (!commitBelongsToDefaultBranch(comparison, releaseCommit)) {
     throw new Error(
-      `Commit ${releaseCommit} is not the exact merge result `
-        + `of a same-repository PR targeting ${releaseBranch}.`,
+      `Commit ${releaseCommit} is not the compared commit on ${releaseBranch} `
+        + 'or a verified ancestor of its current head.',
     )
   }
 
   log.info(
-    `Release lineage verified through PR #${releasePull.number}; `
-      + `${releaseActor} has ${actorPermission} permission.`,
+    `Release lineage verified on ${releaseBranch}; `
+      + `${releaseActor} has ${actorPermission} permission and comparison is ${comparison.status}.`,
   )
 
   return {
     actorPermission,
-    pullNumber: releasePull.number,
+    branch: releaseBranch,
+    comparison: comparison.status,
   }
 }
 

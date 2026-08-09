@@ -67,8 +67,8 @@ describe('scenario 11: credit note', () => {
       creditNoteReference: 'INV-2026-001',
     },
     items: [
-      { description: 'Refund - Product A', quantity: 1, unitPrice: -500 },
-      { description: 'Refund - Product B', quantity: 2, unitPrice: -150 },
+      { description: 'Refund - Product A', quantity: -1, unitPrice: 500 },
+      { description: 'Refund - Product B', quantity: 1, unitPrice: -300 },
     ],
   }
 
@@ -89,11 +89,10 @@ describe('scenario 11: credit note', () => {
     expect(md.length).toBeGreaterThan(0)
   })
 
-  it('validate flags negative unit prices', () => {
+  it('validate accepts signed quantity and signed unit prices', () => {
     const result = validate(doc)
-    expect(result.valid).toBe(false)
-    const codes = result.issues.map(i => i.code)
-    expect(codes).toContain('NEGATIVE_UNIT_PRICE')
+    expect(result.valid).toBe(true)
+    expect(result.issues).toHaveLength(0)
   })
 })
 
@@ -286,7 +285,7 @@ describe('scenario 15: mutator round-trip', () => {
 // ── Scenario 16: Validation Integration ──────────────────────────────────────
 
 describe('scenario 16: validation integration', () => {
-  it('reports errors for invalid currency, negative quantity, negative price, and due before issue', () => {
+  it('reports errors for invalid currency, zero quantity, and due before issue', () => {
     const badDoc: InvoMLDocument = {
       $invoml: '1.0',
       meta: {
@@ -297,7 +296,7 @@ describe('scenario 16: validation integration', () => {
         dueDate: '2026-01-01',
       },
       items: [
-        { description: 'Bad qty', quantity: -1, unitPrice: 100 },
+        { description: 'Bad qty', quantity: 0, unitPrice: 100 },
         { description: 'Bad price', quantity: 1, unitPrice: -50 },
       ],
     }
@@ -305,9 +304,9 @@ describe('scenario 16: validation integration', () => {
     expect(result.valid).toBe(false)
     const codes = result.issues.map(i => i.code)
     expect(codes).toContain('INVALID_CURRENCY')
-    expect(codes).toContain('NON_POSITIVE_QUANTITY')
-    expect(codes).toContain('NEGATIVE_UNIT_PRICE')
+    expect(codes).toContain('ZERO_QUANTITY')
     expect(codes).toContain('DUE_BEFORE_ISSUE')
+    expect(codes).not.toContain('NEGATIVE_UNIT_PRICE')
   })
 
   it('returns valid after all issues are fixed', () => {

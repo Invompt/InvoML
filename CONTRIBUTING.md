@@ -4,7 +4,8 @@ Thank you for your interest in contributing to the Invoice Markup Language.
 
 ## Development Setup
 
-**Requirements:** Node.js >= 18, npm
+**Requirements:** Node.js 22.22.0 and npm 11.11.0 for canonical repository checks. The published
+package retains Node.js 18 as its minimum consumer runtime.
 
 ```bash
 git clone https://github.com/Invompt/InvoML.git

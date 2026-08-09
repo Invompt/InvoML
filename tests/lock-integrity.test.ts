@@ -14,10 +14,10 @@ function clone<T>(value: T): T {
 }
 
 describe('assertLockIntegrity', () => {
-  it('pins the release candidate metadata to alpha.22', () => {
-    expect(packageJson.version).toBe('1.0.0-alpha.22')
-    expect(lockfile.version).toBe('1.0.0-alpha.22')
-    expect(lockfile.packages[''].version).toBe('1.0.0-alpha.22')
+  it('pins the release-candidate metadata to alpha.23', () => {
+    expect(packageJson.version).toBe('1.0.0-alpha.23')
+    expect(lockfile.version).toBe('1.0.0-alpha.23')
+    expect(lockfile.packages[''].version).toBe('1.0.0-alpha.23')
   })
 
   it('accepts the committed package metadata and registry entries', () => {

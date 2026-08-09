@@ -9,7 +9,5 @@ This directory demonstrates an InvoML document at different stages of the pipeli
 
 The JSON file is a valid InvoML v1.0 document. The Markdown file shows what a renderer might produce from the same data using `toMarkdown()`. Both are fictional samples and not tax invoices.
 
-Token comparison against equivalent legacy formats:
-- `invoice.json`: ~522 tokens (2,087 chars ÷ 4)
-- UBL 2.1 equivalent: ~2,000+ tokens
-- Savings: ~75%
+Token counts depend on the model and tokenizer. Measure `invoice.json` with the tokenizer used by
+your application rather than relying on a fixed character-to-token estimate.

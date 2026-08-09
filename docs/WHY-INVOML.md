@@ -144,10 +144,10 @@ InvoML is designed for a different problem: **AI systems that need to generate i
 |---|---|
 | **Token efficiency** | Minimal JSON syntax, no namespace overhead, compact field names |
 | **Deterministic math** | AI generates data only; a runtime computes all totals with arbitrary-precision arithmetic |
-| **LLM-native** | JSON Schema included — plugs directly into structured output APIs |
+| **LLM-native** | JSON Schema plus domain validation provide the authoritative runtime boundary after provider output |
 | **Human readability** | Plain JSON with inline Markdown content — readable without specialized tools |
-| **International tax** | Covers VAT, GST, compound, inclusive, reverse charge, and withholding taxes across 15+ countries |
-| **Conformance testing** | 18 canonical test vectors define correct behavior for any implementation |
+| **International tax** | Covers single-rate, multi-rate, compound, inclusive, reverse-charge, and withholding models |
+| **Conformance testing** | 21 canonical test vectors define successful calculations and required error behavior |
 | **Vendor neutral** | Apache 2.0, no platform dependency, any language can implement it |
 | **Presentation intent** | Optional `style` field carries finite templates, order, visibility, layout, and pagination tokens |
 
@@ -155,7 +155,7 @@ InvoML is designed for a different problem: **AI systems that need to generate i
 
 The most important difference between InvoML and every other format: **the AI never calculates totals.**
 
-In every other approach — UBL, ad-hoc JSON, platform APIs — the document author computes and includes the totals. When the author is an LLM, this means trusting a probabilistic model with arithmetic. InvoML removes this entirely. The AI fills in rates, quantities, and prices. The runtime does all the math, deterministically, with arbitrary-precision decimal arithmetic. The same document produces byte-identical totals on any conforming runtime, in any language, on any platform.
+In every other approach — UBL, ad-hoc JSON, platform APIs — the document author computes and includes the totals. When the author is an LLM, this means trusting a probabilistic model with arithmetic. InvoML removes this entirely. The AI fills in rates, quantities, and prices. The runtime does all the math with arbitrary-precision decimal arithmetic. A conforming implementation must produce the numeric results defined by the normative vectors under the specification's currency and half-up rounding rules.
 
 The second important decision: **the document carries visual intent, not just data.** InvoML's `style` field lets the AI express block order, built-in templates, visibility, layout spans, alignment, and pagination through finite renderer-neutral tokens. Raw CSS remains a trusted runtime concern.
 

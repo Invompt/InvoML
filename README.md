@@ -1,89 +1,92 @@
 # InvoML
 
-[![npm](https://img.shields.io/npm/v/invoml?style=flat-square)](https://www.npmjs.com/package/invoml)
-[![CI](https://img.shields.io/github/actions/workflow/status/Invompt/InvoML/ci.yml?style=flat-square)](https://github.com/Invompt/InvoML/actions)
+[![npm next](https://img.shields.io/npm/v/invoml/next?style=flat-square&label=npm%20next)](https://www.npmjs.com/package/invoml)
+[![CI](https://img.shields.io/github/actions/workflow/status/Invompt/InvoML/ci.yml?style=flat-square&label=tests)](https://github.com/Invompt/InvoML/actions)
+[![Node.js](https://img.shields.io/badge/node-%3E%3D18-339933?style=flat-square&logo=node.js&logoColor=white)](package.json)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue?style=flat-square)](LICENSE)
 
-**A compact invoice document format with deterministic calculation and rendering.**
+**Invoices as data. Totals you can trust. Output anywhere.**
 
-InvoML separates invoice data from the arithmetic and presentation applied by a runtime. The
-reference implementation parses JSON, validates structure and domain rules, calculates totals with
-decimal arithmetic, and renders HTML or Markdown.
+InvoML is a compact, open invoice document format and a TypeScript toolkit for parsing,
+validating, calculating, and rendering invoices. Keep invoice facts portable while the runtime
+owns arithmetic and presentation.
 
-> **Prerelease:** `invoml@1.0.0-alpha.22` is the next release candidate for the `next` channel.
-> Install it with `@next` after authorized publication; `latest` remains on an older prerelease.
+> **Prerelease:** this source declares `invoml@1.0.0-alpha.23` for the `next` channel. Verify the
+> live registry before installation; `latest` intentionally remains on the older
+> `1.0.0-alpha.5` prerelease.
 
-## Install
+## Why InvoML
+
+- **One portable document** — JSON that works across applications, renderers, and AI workflows.
+- **Deterministic totals** — decimal arithmetic, currency-aware rounding, discounts, and tax.
+- **Validation at every boundary** — JSON Schema checks plus invoice-specific domain rules.
+- **Multiple outputs** — render the same document as HTML, Markdown, or canonical JSON.
+- **Presentation without lock-in** — locales, themes, templates, and renderer-neutral style tokens.
+
+## Installation
 
 ```sh
 npm install invoml@next
 ```
 
-Node.js 18 or newer is supported.
+InvoML supports Node.js 18 and newer and ships with TypeScript declarations.
 
 ## Quick start
 
-The source document contains invoice facts only. Totals are derived by `calculate()`.
+Create the invoice from facts, calculate the totals, then render the calculated document:
 
 ```ts
-import { calculate, parse, toHTML, validate, validateSchema } from 'invoml'
+import { calculate, toHTML, validate, type InvoMLDocument } from 'invoml'
 
-const source = {
+const invoice: InvoMLDocument = {
   $invoml: '1.0',
   meta: {
     documentType: 'invoice',
     number: 'DEMO-001',
-    issueDate: '2026-08-01',
+    issueDate: '2026-08-09',
     currency: 'USD',
   },
   items: [
-    { description: 'Example line', quantity: 2, unitPrice: 75 },
+    { description: 'Example item', quantity: 2, unitPrice: 750 },
   ],
 }
 
-const schemaResult = validateSchema(source)
-if (!schemaResult.valid) throw new Error('Invalid InvoML shape')
+const validation = validate(invoice)
+if (!validation.valid) {
+  throw new Error(validation.issues.map(issue => issue.message).join('\n'))
+}
 
-const parsed = parse(JSON.stringify(source))
-if (!parsed.success) throw new Error(parsed.errors.join('\n'))
+const totals = calculate(invoice)
+const html = toHTML({ ...invoice, totals })
 
-const domainResult = validate(parsed.document)
-if (!domainResult.valid) throw new Error('Invalid invoice data')
-
-const totals = calculate(parsed.document)
-const html = toHTML({ ...parsed.document, totals })
-
-console.log(totals.total)
+console.log(totals.total) // 1500
 console.log(html)
 ```
 
-The usual flow is:
+For untrusted serialized input, call `parse()` before applying domain rules with `validate()`.
+Use `validateSchema()` when the input is already a JavaScript value.
 
-1. Check raw input with `validateSchema()`.
-2. Parse it with `parse()`.
-3. Apply domain rules with `validate()`.
-4. Derive totals with `calculate()`.
-5. Render the calculated document with `toHTML()` or `toMarkdown()`.
+```text
+JSON input  →  schema validation  →  domain validation  →  calculation  →  output
+```
 
-## What is included
+## Core API
 
-The main entry point exports the core pipeline plus focused helpers:
+| Capability | APIs |
+|---|---|
+| Parse and validate | `parse`, `validateSchema`, `setSchema`, `validate` |
+| Calculate | `calculate`, `CalculationError`, currency-aware rounding helpers |
+| Edit safely | `applyDiscount`, `removeDiscounts`, `applyTax`, `removeTax` |
+| Render | `toHTML`, `renderHTML`, `toMarkdown`, `renderMarkdown`, `toJSON` |
+| Present | `resolvePresentation`, `resolveStyle`, `resolveTheme`, locale and date helpers |
 
-- Parsing and validation: `parse`, `validateSchema`, `setSchema`, `validate`.
-- Calculation and safe edits: `calculate`, `applyDiscount`, `removeDiscounts`, `applyTax`,
-  `removeTax`.
-- Output: `toJSON`, `toMarkdown`, `renderMarkdown`, `toHTML`, `renderHTML`.
-- Presentation and formatting: `resolvePresentation`, `resolveStyle`, `resolveTheme`,
-  `formatDate`, and deterministic number-format helpers.
-- Types and constants for documents, totals, styles, themes, locales, and calculation errors.
+Focused subpath exports are available for the calculator, renderer, validator, mutators,
+formatting, themes, presentation, types, and the JSON Schema. The package also includes the
+`invoml` CLI.
 
-Focused subpath exports are available for the calculator, renderer, validator, validation,
-mutators, formatting, themes, presentation, types, and the JSON Schema. The package also installs
-the `invoml` CLI.
+## CLI
 
-## CLI, schema, and specification
-
-Use the prerelease channel for the CLI as well:
+Validate, calculate, or render a document without writing an integration:
 
 ```sh
 npx invoml@next validate invoice.json
@@ -93,21 +96,28 @@ npx invoml@next html invoice.json > invoice.html
 
 The `html` command also accepts `--theme <name>` and `--custom-css <file>`.
 
-- [JSON Schema](invoml-v1.0.schema.json) for structured-output integrations.
-- [Specification](SPEC.md) for the document and calculation rules.
-- [Conformance vectors](test-vectors/) for independent implementations.
-- [LLM integration guide](docs/LLM-INTEGRATION.md) for structured-output workflows.
+## Documentation
+
+- [InvoML specification](https://github.com/Invompt/InvoML/blob/main/SPEC.md)
+- [JSON Schema](https://github.com/Invompt/InvoML/blob/main/invoml-v1.0.schema.json)
+- [LLM integration guide](https://github.com/Invompt/InvoML/blob/main/docs/LLM-INTEGRATION.md)
+- [Conformance vectors](https://github.com/Invompt/InvoML/tree/main/test-vectors)
+- [Examples](https://github.com/Invompt/InvoML/tree/main/examples)
 
 ## Security and data integrity
 
-- Validate untrusted input before parsing or calculating it.
+- Parse untrusted serialized input, apply domain validation, and only then calculate it.
 - Treat calculated totals as runtime output, never as authored source data.
-- Use `setSchema()` before validation in browser or edge runtimes when filesystem access is not
-  available.
+- Call `setSchema()` before validation in browser runtimes where filesystem access is unavailable.
 - Treat `customCss` as trusted runtime input; it is not an InvoML authoring surface.
-- Keep customer data and credentials out of documents, examples, fixtures, and source control.
+- Keep customer data and credentials out of documents, fixtures, and source control.
+
+See the [security policy](https://github.com/Invompt/InvoML/blob/main/SECURITY.md) to report a vulnerability.
 
 ## Development
+
+Use Node.js 22.22.0 and npm 11.11.0 for the canonical repository and release checks. Node.js 18
+remains the minimum supported consumer runtime.
 
 ```sh
 npm ci
@@ -117,8 +127,7 @@ npm test
 npm run test:functional
 ```
 
-Contributions should follow [CONTRIBUTING.md](CONTRIBUTING.md). Report security issues according
-to [SECURITY.md](SECURITY.md).
+Contributions are welcome. Read the [contributing guide](https://github.com/Invompt/InvoML/blob/main/CONTRIBUTING.md) before opening a change.
 
 ## License
 

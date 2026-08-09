@@ -29,16 +29,16 @@ describe('trusted publishing workflow security invariants', () => {
     expect(packageJson.repository?.url).toBe('https://github.com/Invompt/InvoML')
   })
 
-  it('has one exact release-candidate tag trigger and rejects private repositories', () => {
+  it('has one exact immutable prerelease tag trigger and rejects private repositories', () => {
     expect(workflow).toContain('name: Trusted Publish')
-    expect(workflow).toContain("- 'v1.0.0-alpha.22'")
+    expect(workflow).toContain("- 'v1.0.0-alpha.23'")
     expect(workflow).not.toContain("- 'v*'")
     expect(workflow).not.toContain('workflow_dispatch')
-    expect(buildJob).toContain("github.ref == 'refs/tags/v1.0.0-alpha.22'")
+    expect(buildJob).toContain("github.ref == 'refs/tags/v1.0.0-alpha.23'")
     expect(buildJob).toContain('github.event.repository.private == false')
-    expect(buildJob).toContain('test "$REF" = refs/tags/v1.0.0-alpha.22')
+    expect(buildJob).toContain('test "$REF" = refs/tags/v1.0.0-alpha.23')
     expect(buildJob).toContain('test "$REPOSITORY_PRIVATE" = false')
-    expect(buildJob).toContain('test "$PACKAGE_VERSION" = 1.0.0-alpha.22')
+    expect(buildJob).toContain('test "$PACKAGE_VERSION" = 1.0.0-alpha.23')
   })
 
   it('uses the exact reviewed Node and npm versions', () => {
@@ -74,7 +74,14 @@ describe('trusted publishing workflow security invariants', () => {
     expect(publishJob).toContain('ARTIFACT_DIGEST')
     expect(publishJob).toContain('sha256sum --check')
     expect(publishJob).toContain('assert.deepEqual')
-    expect(publishJob).toContain('test "$PACKAGE_VERSION" = 1.0.0-alpha.22')
+    expect(publishJob).toContain('test "$PACKAGE_VERSION" = 1.0.0-alpha.23')
+    expect(buildJob).toContain('node scripts/release-gate.mjs')
+    expect(buildJob).toContain('env:')
+    expect(buildJob).toContain('GITHUB_TOKEN: ${{ github.token }}')
+    expect(buildJob).toContain('GITHUB_REPOSITORY: ${{ github.repository }}')
+    expect(buildJob).toContain('GITHUB_ACTOR: ${{ github.actor }}')
+    expect(buildJob).toContain('COMMIT_SHA: ${{ steps.release.outputs.commit-sha }}')
+    expect(buildJob).toContain('DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}')
   })
 
   it('keeps checkout, project dependencies, and repository scripts out of publishing', () => {

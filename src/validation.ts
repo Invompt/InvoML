@@ -119,13 +119,13 @@ function validateItems(doc: InvoMLDocument, issues: ValidationIssue[]): void {
         'INVALID_ITEM_VALUE',
         `Item at index ${i} has a non-finite quantity: ${item.quantity}.`,
       )
-    } else if (item.quantity <= 0) {
+    } else if (item.quantity === 0) {
       addIssue(
         issues,
         'error',
         `items[${i}].quantity`,
-        'NON_POSITIVE_QUANTITY',
-        `Item at index ${i} has a quantity of ${item.quantity}; must be greater than 0.`,
+        'ZERO_QUANTITY',
+        `Item at index ${i} has a quantity of 0; use a non-zero signed quantity.`,
       )
     }
 
@@ -136,14 +136,6 @@ function validateItems(doc: InvoMLDocument, issues: ValidationIssue[]): void {
         `items[${i}].unitPrice`,
         'INVALID_ITEM_VALUE',
         `Item at index ${i} has a non-finite unit price: ${item.unitPrice}.`,
-      )
-    } else if (item.unitPrice < 0) {
-      addIssue(
-        issues,
-        'error',
-        `items[${i}].unitPrice`,
-        'NEGATIVE_UNIT_PRICE',
-        `Item at index ${i} has a negative unit price of ${item.unitPrice}.`,
       )
     }
   }

@@ -2,9 +2,11 @@
 
 ## Supported versions
 
-Security fixes are assessed for the current pre-release line. This publication
-candidate is not evidence that any version has been published or is supported
-in production.
+Security fixes are assessed for the current `next` prerelease line. Packages on
+that line remain pre-1.0 software and do not establish a production support
+commitment or service-level agreement. Verify the current published prerelease
+with `npm view invoml dist-tags --json`; the older `1.0.0-alpha.5` version on
+`latest` is not the recommended installation channel.
 
 ## Reporting a vulnerability
 

@@ -1,6 +1,9 @@
 # InvoML LLM Integration Guide
 
-How to use InvoML with every major LLM provider's structured output API.
+How to use InvoML with the OpenAI, Anthropic, and Google structured-output APIs.
+
+The three complete examples below are mirrored in `examples/llm-providers/` and typechecked against
+the pinned provider SDKs by `npm test`. Documentation tests fail if either copy drifts.
 
 ---
 
@@ -12,9 +15,9 @@ This means:
 
 - **The AI never calculates totals.** It never computes `quantity * unitPrice`, applies a discount, or sums a tax. It just describes the transaction.
 - **The runtime is the single source of truth for numbers.** Every subtotal, tax amount, and total is produced by `calculate()`, not by the model.
-- **Results are reproducible.** The same input document always produces the same totals, across every environment and every language implementation.
+- **Results are reproducible.** Conforming runtimes apply the same decimal and rounding rules to the same input document.
 
-The practical implication: you pass the InvoML JSON Schema to the LLM's structured output API, the model returns a valid InvoML document, and you pipe it through `parse()` → `calculate()` → `toJSON()` / `toMarkdown()`. The model's output is never trusted for arithmetic.
+The practical implication: the InvoML JSON Schema is the runtime contract, while each LLM provider supports a different JSON Schema subset. Ask the model for JSON, then pipe the untrusted result through `parse()` → `validate()` → `calculate()` → `toJSON()` / `toMarkdown()`. Never treat provider-side structured output as a substitute for full InvoML validation.
 
 ---
 
@@ -32,7 +35,7 @@ import schema from 'invoml/invoml-v1.0.schema.json' with { type: 'json' }
 | Field | Description |
 |---|---|
 | `$invoml` | Always `"1.0"` — the AI must include this |
-| `meta.documentType` | `"invoice"`, `"quote"`, `"credit_note"`, or `"receipt"` |
+| `meta.documentType` | `"invoice"`, `"quote"`, `"credit_note"`, `"receipt"`, or `"estimate"` |
 | `meta.number` | Document number string, e.g. `"INV-2026-001"` |
 | `meta.issueDate` | ISO date string `"YYYY-MM-DD"` |
 | `meta.dueDate` | ISO date string, optional |
@@ -84,7 +87,7 @@ Unknown names are schema-invalid.
   "order": ["header", "from", "to", "section:scope", "items", "totals", "payment", "notes"]
 }
 ```
-**Important:** A section must appear in both `sections` (as data) and `style.order` (as a rendering instruction). Defining a section but omitting it from `style.order` means it will not be rendered.
+**Important:** Without `style.order`, custom sections render after totals in alphabetical order. When an explicit `style.order` is present, a section must appear in both `sections` (as data) and `style.order` (as a rendering instruction); an omitted section is intentionally not rendered.
 
 **Receipt pattern:** Omit `to` and `payment` from the order:
 ```json
@@ -114,28 +117,36 @@ Unknown names are schema-invalid.
 
 ---
 
-## OpenAI Structured Outputs
+## OpenAI Responses API
 
-OpenAI's Structured Outputs API guarantees that the model response matches a JSON Schema you provide. Pass the InvoML schema via `response_format` with `type: "json_schema"`.
+OpenAI strict Structured Outputs cannot accept the complete InvoML schema unchanged. OpenAI's strict subset requires every object property to be required and does not support keywords such as `if`, `then`, and `else`; InvoML intentionally has optional fields and conditional validation. Use JSON mode to obtain a JSON object, then enforce the complete contract with `parse()` and `validate()`.
 
 ### Install
 
 ```bash
-npm install openai invoml
+npm install openai invoml@next
 ```
+
+The pinned `openai@7.4.0` example requires Node.js 22 or newer. This repository verifies it on
+Node.js 22.22.0; the `invoml` package by itself retains Node.js 18 consumer support.
 
 ### Complete example
 
 ```typescript
 import OpenAI from 'openai'
-import { parse, calculate, toMarkdown } from 'invoml'
-import schema from 'invoml/invoml-v1.0.schema.json' with { type: 'json' }
-// Node.js 18-20: use 'assert' instead of 'with'
+import { parse, validate, calculate, toMarkdown } from 'invoml'
 
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+const model = requireEnv('OPENAI_MODEL')
+
+function requireEnv(name: string): string {
+  const value = process.env[name]
+  if (!value) throw new Error(`Set ${name} to a currently supported model`)
+  return value
+}
 
 const SYSTEM_PROMPT = `You are an invoice generation assistant. Given a description of a transaction,
-produce an InvoML v1.0 document as structured output.
+produce an InvoML v1.0 document as a JSON object.
 
 Rules:
 - Set "$invoml" to "1.0" — always required
@@ -143,6 +154,8 @@ Rules:
   and the entire "totals" object out of your response
 - Set currency as a three-letter ISO 4217 code (USD, EUR, GBP, MXN, etc.)
 - Set issueDate as YYYY-MM-DD
+- Set documentType to invoice, quote, credit_note, receipt, or estimate; include
+  creditNoteReference when documentType is credit_note
 - If tax applies, declare it in meta.tax using a simple { label, rate } for single-rate tax,
   or { categories: [...] } for multi-rate tax
 - When using multi-rate tax, set taxCategory on each line item matching the category id
@@ -153,29 +166,32 @@ Rules:
 - The "content" field on from/to is the actual display text with Markdown formatting, not the word "markdown"`
 
 async function generateInvoice(userRequest: string): Promise<string> {
-  const response = await client.chat.completions.create({
-    model: 'gpt-4o-2024-08-06',
-    messages: [
+  const response = await client.responses.create({
+    model,
+    input: [
       { role: 'system', content: SYSTEM_PROMPT },
       { role: 'user', content: userRequest },
     ],
-    response_format: {
-      type: 'json_schema',
-      json_schema: {
-        name: 'invoml_document',
-        strict: true,
-        schema: schema,
-      },
+    text: {
+      format: { type: 'json_object' },
     },
   })
 
-  const raw = response.choices[0].message.content
+  const raw = response.output_text
   if (!raw) throw new Error('Empty response from OpenAI')
 
-  // Parse and validate
+  // Parse and apply domain validation before calculation
   const parsed = parse(raw)
   if (!parsed.success) {
     throw new Error(`InvoML parse error: ${parsed.errors.join(', ')}`)
+  }
+
+  const validation = validate(parsed.document)
+  const fatalIssues = validation.issues
+    .filter(issue => issue.level === 'error')
+    .map(issue => `${issue.code}: ${issue.message}`)
+  if (fatalIssues.length > 0) {
+    throw new Error(`InvoML validation error(s): ${fatalIssues.join('; ')}`)
   }
 
   // Compute all totals deterministically
@@ -187,18 +203,18 @@ async function generateInvoice(userRequest: string): Promise<string> {
 
 // Usage
 const markdown = await generateInvoice(
-  'Create an invoice from EXAMPLE LANTERN WORKS to EXAMPLE CLIENT WORKS for 10 cartons of archival folders at $200 per carton. ' +
+  'Create an invoice from FICTIONAL SAMPLE LANTERN PAPER CO to FICTIONAL SAMPLE AMBER MARKET CO for 10 cartons of archival folders at $200 per carton. ' +
   'Add 8.25% sales tax. Due in 30 days.'
 )
 console.log(markdown)
 ```
 
-### Notes on OpenAI Structured Outputs
+### Notes on the OpenAI Responses API
 
-- `strict: true` enforces that the model output exactly matches the schema — no extra properties, no missing required fields.
-- The InvoML schema uses `oneOf` for `meta.tax` and `items[].discount`. OpenAI supports `oneOf` in strict mode as of `gpt-4o-2024-08-06` and later snapshots.
-- If you hit schema compatibility issues with older model snapshots, pass `strict: false` and validate manually with `validateSchema()` from `invoml`.
-- The `$schema` and `$id` fields at the root of the InvoML schema are ignored by OpenAI's structured output processor.
+- JSON mode guarantees syntactically valid JSON, not a valid InvoML document. `parse()` and `validate()` remain mandatory.
+- Do not pass the complete InvoML schema to OpenAI with `strict: true`. Build and maintain a provider-specific strict schema only if your application needs that extra constraint, and still validate against InvoML afterward.
+- Keep the model identifier in configuration and verify it against the current OpenAI model catalog before deployment.
+- See OpenAI's current [Structured Outputs schema rules](https://developers.openai.com/api/docs/guides/structured-outputs#supported-schemas) and [JSON mode guidance](https://developers.openai.com/api/docs/guides/structured-outputs#json-mode).
 
 ---
 
@@ -209,18 +225,29 @@ Claude does not have a `response_format` parameter. Instead, you define an InvoM
 ### Install
 
 ```bash
-npm install @anthropic-ai/sdk invoml
+npm install @anthropic-ai/sdk invoml@next
 ```
+
+Run this typechecked provider example on the repository runtime, Node.js 22.22.0. The `invoml`
+package by itself retains Node.js 18 consumer support; provider SDK support is a separate contract.
 
 ### Complete example
 
 ```typescript
 import Anthropic from '@anthropic-ai/sdk'
-import { parse, calculate, toMarkdown } from 'invoml'
+import { parse, validate, calculate, toMarkdown } from 'invoml'
 import schema from 'invoml/invoml-v1.0.schema.json' with { type: 'json' }
 // Node.js 18-20: use 'assert' instead of 'with'
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+const model = requireEnv('ANTHROPIC_MODEL')
+const inputSchema = schema as Anthropic.Tool.InputSchema
+
+function requireEnv(name: string): string {
+  const value = process.env[name]
+  if (!value) throw new Error(`Set ${name} to a currently supported model`)
+  return value
+}
 
 const SYSTEM_PROMPT = `You are an invoice generation assistant. When the user describes a transaction,
 call the generate_invoml tool to produce a valid InvoML v1.0 document.
@@ -231,6 +258,8 @@ Rules:
   and the entire "totals" object
 - Set currency as a three-letter ISO 4217 code (USD, EUR, GBP, MXN, etc.)
 - Set issueDate as YYYY-MM-DD
+- Set documentType to invoice, quote, credit_note, receipt, or estimate; include
+  creditNoteReference when documentType is credit_note
 - If tax applies, declare it in meta.tax: use { label, rate } for single-rate,
   or { categories: [...] } for multi-rate
 - When using multi-rate tax, assign taxCategory on each line item to match the category id
@@ -243,7 +272,7 @@ Rules:
 
 async function generateInvoice(userRequest: string): Promise<string> {
   const response = await client.messages.create({
-    model: 'claude-sonnet-4-6',
+    model,
     max_tokens: 4096,
     system: SYSTEM_PROMPT,
     tools: [
@@ -253,7 +282,7 @@ async function generateInvoice(userRequest: string): Promise<string> {
           'Generate a structured InvoML v1.0 invoice document based on the transaction details ' +
           'provided by the user. Call this tool with a complete InvoML document — do not calculate ' +
           'totals or tax amounts, as those are computed by the runtime.',
-        input_schema: schema,
+        input_schema: inputSchema,
       },
     ],
     tool_choice: { type: 'tool', name: 'generate_invoml' },
@@ -269,10 +298,18 @@ async function generateInvoice(userRequest: string): Promise<string> {
   // The tool input IS the InvoML document — serialize it for parse()
   const raw = JSON.stringify(toolUse.input)
 
-  // Parse and validate
+  // Parse and apply domain validation before calculation
   const parsed = parse(raw)
   if (!parsed.success) {
     throw new Error(`InvoML parse error: ${parsed.errors.join(', ')}`)
+  }
+
+  const validation = validate(parsed.document)
+  const fatalIssues = validation.issues
+    .filter(issue => issue.level === 'error')
+    .map(issue => `${issue.code}: ${issue.message}`)
+  if (fatalIssues.length > 0) {
+    throw new Error(`InvoML validation error(s): ${fatalIssues.join('; ')}`)
   }
 
   // Compute all totals deterministically
@@ -292,32 +329,42 @@ console.log(markdown)
 
 ### Notes on Anthropic tool use
 
-- `tool_choice: { type: 'tool', name: 'generate_invoml' }` forces Claude to call the tool instead of responding with text. This is the equivalent of OpenAI's `response_format`.
-- The `input_schema` field accepts a standard JSON Schema object directly — no conversion needed.
+- `tool_choice: { type: 'tool', name: 'generate_invoml' }` forces a tool call; it does not guarantee that the tool input conforms to the complete InvoML schema.
+- Anthropic's `strict: true` option is what provides provider-side schema conformance. Do not add it to this example without first translating InvoML into Anthropic's supported strict subset.
+- The non-strict `input_schema` can use the InvoML schema as generation guidance, but `parse()` plus `validate()` remain the authoritative validation boundary.
 - `toolUse.input` is already a parsed JavaScript object (not a string), so you need `JSON.stringify` before passing it to `parse()`, which expects a JSON string.
-- Claude tends to produce high-quality party details and notes. The system prompt instruction to omit `totals` is critical — without it Claude will attempt to pre-calculate amounts.
+- Keep the model identifier in configuration and verify it against the current Anthropic model catalog before deployment.
+- See Anthropic's current [strict tool use](https://platform.claude.com/docs/en/agents-and-tools/tool-use/strict-tool-use) and [tool definition](https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools) guidance.
 
 ---
 
 ## Google Gemini Structured Output
 
-The Gemini API accepts a raw JSON Schema in `responseSchema` alongside `responseMimeType: "application/json"`. No conversion library is required.
+Gemini supports structured JSON through the Interactions API, but its supported schema is a subset of JSON Schema. Use a permissive JSON-object schema for transport and apply the complete InvoML contract with `parse()` and `validate()`.
 
 ### Install
 
 ```bash
-npm install @google/genai invoml
+npm install @google/genai invoml@next
 ```
+
+The pinned `@google/genai@2.16.0` example requires Node.js 20 or newer. This repository verifies it
+on Node.js 22.22.0; the `invoml` package by itself retains Node.js 18 consumer support.
 
 ### Complete example
 
 ```typescript
 import { GoogleGenAI } from '@google/genai'
-import { parse, calculate, toMarkdown } from 'invoml'
-import schema from 'invoml/invoml-v1.0.schema.json' with { type: 'json' }
-// Node.js 18-20: use 'assert' instead of 'with'
+import { parse, validate, calculate, toMarkdown } from 'invoml'
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY })
+const model = requireEnv('GEMINI_MODEL')
+
+function requireEnv(name: string): string {
+  const value = process.env[name]
+  if (!value) throw new Error(`Set ${name} to a currently supported model`)
+  return value
+}
 
 const SYSTEM_PROMPT = `You are an invoice generation assistant. Given a description of a transaction,
 produce a valid InvoML v1.0 document as JSON.
@@ -328,6 +375,8 @@ Rules:
   and the entire "totals" object
 - Set currency as a three-letter ISO 4217 code (USD, EUR, GBP, etc.)
 - Set issueDate as YYYY-MM-DD
+- Set documentType to invoice, quote, credit_note, receipt, or estimate; include
+  creditNoteReference when documentType is credit_note
 - Declare tax in meta.tax: use { label, rate } for single-rate, or { categories: [...] } for multi-rate
 - When using multi-rate tax, set taxCategory on each line item to match the category id
 - Use "from" for the seller party, "to" for the buyer party
@@ -338,24 +387,34 @@ Rules:
 - The "content" field on from/to is the actual display text with Markdown formatting, not the word "markdown"`
 
 async function generateInvoice(userRequest: string): Promise<string> {
-  const response = await ai.models.generateContent({
-    model: 'gemini-2.0-flash',
-    contents: [
-      { role: 'user', parts: [{ text: `${SYSTEM_PROMPT}\n\n${userRequest}` }] },
-    ],
-    config: {
-      responseMimeType: 'application/json',
-      responseSchema: schema,
+  const interaction = await ai.interactions.create({
+    model,
+    input: `${SYSTEM_PROMPT}\n\n${userRequest}`,
+    response_format: {
+      type: 'text',
+      mime_type: 'application/json',
+      schema: {
+        type: 'object',
+        additionalProperties: true,
+      },
     },
   })
 
-  const raw = response.text
+  const raw = interaction.output_text
   if (!raw) throw new Error('Empty response from Gemini')
 
-  // Parse and validate
+  // Parse and apply domain validation before calculation
   const parsed = parse(raw)
   if (!parsed.success) {
     throw new Error(`InvoML parse error: ${parsed.errors.join(', ')}`)
+  }
+
+  const validation = validate(parsed.document)
+  const fatalIssues = validation.issues
+    .filter(issue => issue.level === 'error')
+    .map(issue => `${issue.code}: ${issue.message}`)
+  if (fatalIssues.length > 0) {
+    throw new Error(`InvoML validation error(s): ${fatalIssues.join('; ')}`)
   }
 
   // Compute all totals deterministically
@@ -376,11 +435,11 @@ console.log(markdown)
 
 ### Notes on Gemini structured output
 
-- `responseSchema` accepts a raw JSON Schema object. No Zod or other schema library is required.
+- The permissive provider schema constrains the response to a JSON object; it does not validate InvoML fields or domain rules.
+- Do not assume the complete InvoML schema can be passed directly to Gemini. Translate it to the currently supported Gemini subset only if you are prepared to maintain that provider-specific schema.
 - The Gemini API uses the `@google/genai` package (not the deprecated `@google/generative-ai`).
-- Gemini does not support a system role in the messages array with the `generateContent` API — prepend the system prompt to the first user message as shown above, or use the `systemInstruction` config field if available in your SDK version.
-- Gemini 2.0 Flash and 2.5 Pro support JSON Schema including `oneOf`, `$ref`, and property ordering. Earlier models (1.5 Flash/Pro) had limited `oneOf` support — prefer 2.0+ for InvoML.
-- `response.text` returns the raw JSON string directly.
+- Keep the model identifier in configuration and verify it against the current Gemini model catalog before deployment.
+- See Google's current [structured output](https://ai.google.dev/gemini-api/docs/structured-output) guidance.
 
 ---
 
@@ -395,7 +454,8 @@ the transaction structure accurately.
 
 ## Required fields
 - "$invoml": "1.0"  — always include this exact value
-- meta.documentType: one of "invoice", "quote", "credit_note", "receipt"
+- meta.documentType: one of "invoice", "quote", "credit_note", "receipt", "estimate"
+- meta.creditNoteReference: required when meta.documentType is "credit_note"
 - meta.number: a document number string
 - meta.issueDate: date in YYYY-MM-DD format
 - meta.currency: three-letter ISO 4217 code (USD, EUR, GBP, JPY, MXN, AUD, CAD, ...)
@@ -488,9 +548,13 @@ LLM response (raw JSON string)
        ▼
   parse(rawJson)
        │
-       ├─ success: false → handle errors[]
+       ├─ success: false → handle parse/schema errors[]
        │
-       ├─ success: true → InvoMLDocument
+       └─ success: true → validate(document)
+                              │
+                              ├─ domain errors → handle issues[]
+                              │
+                              └─ no errors → InvoMLDocument
        │
        ▼
   calculate(document)
@@ -504,27 +568,28 @@ LLM response (raw JSON string)
 ### With error handling
 
 ```typescript
-import { parse, calculate, validateSchema, toJSON, toMarkdown } from 'invoml'
+import { parse, validate, calculate, toJSON, toMarkdown } from 'invoml'
 
 async function processLLMOutput(rawJson: string): Promise<{
   json: string
   markdown: string
 }> {
-  // Step 1: Quick schema check (optional pre-validation before parse)
-  const schemaCheck = validateSchema(JSON.parse(rawJson))
-  if (!schemaCheck.valid) {
-    // Log and optionally retry the LLM call with error feedback
-    console.error('Schema validation errors:', schemaCheck.errors)
-    throw new Error(`Invalid InvoML structure: ${schemaCheck.errors.join('; ')}`)
-  }
-
-  // Step 2: Parse — validates schema and types
+  // Step 1: Parse the raw JSON text
   const parsed = parse(rawJson)
   if (!parsed.success) {
     throw new Error(`Parse failed: ${parsed.errors.join('; ')}`)
   }
 
-  // Step 3: Calculate — deterministic arithmetic, never fails on valid documents
+  // Step 2: Apply invoice-specific domain validation
+  const validation = validate(parsed.document)
+  const fatalIssues = validation.issues.filter(issue => issue.level === 'error')
+  if (fatalIssues.length > 0) {
+    throw new Error(
+      `Validation errors: ${fatalIssues.map(issue => issue.code + ': ' + issue.message).join('; ')}`,
+    )
+  }
+
+  // Step 3: Calculate — may raise a CalculationError for invalid tax relationships
   const totals = calculate(parsed.document)
 
   // Step 4: Serialize
@@ -537,46 +602,40 @@ async function processLLMOutput(rawJson: string): Promise<{
 
 ### Retry loop pattern
 
-When LLM structured output fails validation (rare with strict mode, but possible), feed the errors back to the model:
+Provider-side JSON constraints do not replace InvoML validation. When output fails validation, feed the errors back through the same provider adapter:
 
 ```typescript
-import { parse, validateSchema } from 'invoml'
-import OpenAI from 'openai'
-import schema from 'invoml/invoml-v1.0.schema.json' with { type: 'json' }
-// Node.js 18-20: use 'assert' instead of 'with'
+import { parse, validate } from 'invoml'
 
-const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+type GenerateJson = (prompt: string) => Promise<string>
 
 async function generateWithRetry(
+  generateJson: GenerateJson,
   userRequest: string,
   maxAttempts = 3
 ): Promise<string> {
-  const messages: OpenAI.ChatCompletionMessageParam[] = [
-    { role: 'system', content: SYSTEM_PROMPT },
-    { role: 'user', content: userRequest },
-  ]
+  let prompt = `${SYSTEM_PROMPT}\n\n${userRequest}`
 
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-    const response = await client.chat.completions.create({
-      model: 'gpt-4o-2024-08-06',
-      messages,
-      response_format: {
-        type: 'json_schema',
-        json_schema: { name: 'invoml_document', strict: true, schema },
-      },
-    })
+    const raw = await generateJson(prompt)
 
-    const raw = response.choices[0].message.content ?? ''
-    const parsed = parse(raw)
+    try {
+      const parsed = parse(raw)
+      if (!parsed.success) {
+        throw new Error(`Parse failed: ${parsed.errors.join('; ')}`)
+      }
+      const validation = validate(parsed.document)
+      const fatalIssues = validation.issues.filter(issue => issue.level === 'error')
+      if (fatalIssues.length === 0) {
+        return raw
+      }
 
-    if (parsed.success) return raw
-
-    // Feed errors back for the next attempt
-    messages.push({ role: 'assistant', content: raw })
-    messages.push({
-      role: 'user',
-      content: `The document failed InvoML validation with these errors:\n${parsed.errors.join('\n')}\nPlease fix and regenerate.`,
-    })
+      prompt = `${SYSTEM_PROMPT}\n\n${userRequest}\n\nThe previous JSON failed InvoML validation:\n${fatalIssues.map(issue => `${issue.code}: ${issue.message}`).join('\n')}\nReturn a corrected complete JSON object.`
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : `Validation failure at attempt ${attempt}`
+      prompt = `${SYSTEM_PROMPT}\n\n${userRequest}\n\nThe previous response failed validation:\n${message}\nReturn a corrected complete JSON object.`
+    }
   }
 
   throw new Error(`Failed to generate valid InvoML after ${maxAttempts} attempts`)
@@ -607,7 +666,7 @@ async function generateWithRetry(
 }
 ```
 
-**Why it's wrong:** `calculate()` cannot resolve `"reduced"` — it falls back to the default category or throws depending on the document.
+**Why it's wrong:** `calculate()` cannot resolve `"reduced"` and raises an `UNKNOWN_CATEGORY` calculation error.
 
 **Fix:** Ensure every `taxCategory` value on a line item matches an `id` in `meta.tax.categories`. Tell the model explicitly: *"Only use taxCategory values that appear as ids in meta.tax.categories"*.
 
@@ -652,7 +711,7 @@ async function generateWithRetry(
 
 **Why it's wrong:** `$invoml` is in the schema's `required` array. `parse()` will return `{ success: false }`.
 
-**Fix:** The system prompt should say `"$invoml": "1.0"` is always required. With OpenAI strict mode and `const: "1.0"` in the schema, the model is forced to emit the correct value.
+**Fix:** The system prompt should say `"$invoml": "1.0"` is always required. The local `parse()` call enforces the schema's `const: "1.0"` rule regardless of provider.
 
 ---
 
@@ -698,9 +757,9 @@ Both the `sections` data entry and the `style.order` reference are required for 
 
 ---
 
-### Mistakes discovered from real AI testing (Kimi, March 2026)
+### Additional model-output mistakes
 
-These were found by testing InvoML with the Kimi AI model using a simple invoice generation prompt. All were structural issues caused by unclear schema descriptions or missing system prompt rules. Each has been fixed in the schema and system prompt template above.
+These structural mistakes have appeared in model-generated documents when schema descriptions or system-prompt rules were incomplete. The current schema and prompt template address them explicitly.
 
 ---
 
@@ -815,9 +874,9 @@ const schema = JSON.parse(
 
 | | OpenAI | Anthropic | Google Gemini |
 |---|---|---|---|
-| Mechanism | `response_format.json_schema` | Tool use `input_schema` | `config.responseSchema` |
-| Schema input | JSON Schema object | JSON Schema object | JSON Schema object |
-| Strict/guaranteed | Yes (`strict: true`) | Yes (`tool_choice: { type: "tool" }`) | Yes (constrained decoding) |
-| `oneOf` support | Yes (gpt-4o-2024-08-06+) | Yes | Yes (Gemini 2.0+) |
-| Min model | gpt-4o-2024-08-06 | claude-haiku-3.5+ | gemini-2.0-flash+ |
+| Mechanism used here | Responses API JSON mode | Forced, non-strict tool call | Interactions structured JSON |
+| Provider-side guarantee | Valid JSON | Named tool is called | JSON object matching the permissive provider schema |
+| Complete InvoML schema passed directly | No | As non-strict generation guidance only | No |
+| Authoritative validation | `parse() → validate()` | `parse() → validate()` | `parse() → validate()` |
+| Model configuration | `OPENAI_MODEL` | `ANTHROPIC_MODEL` | `GEMINI_MODEL` |
 | SDK package | `openai` | `@anthropic-ai/sdk` | `@google/genai` |
