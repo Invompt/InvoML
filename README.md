@@ -10,8 +10,8 @@ InvoML separates invoice data from the arithmetic and presentation applied by a 
 reference implementation parses JSON, validates structure and domain rules, calculates totals with
 decimal arithmetic, and renders HTML or Markdown.
 
-> **Prerelease:** `invoml@1.0.0-alpha.21` is published on the `next` channel. Install it with
-> `@next` explicitly; `latest` currently points to an older prerelease.
+> **Prerelease:** `invoml@1.0.0-alpha.22` is the next release candidate for the `next` channel.
+> Install it with `@next` after authorized publication; `latest` remains on an older prerelease.
 
 ## Install
 

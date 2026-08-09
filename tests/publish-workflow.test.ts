@@ -31,14 +31,14 @@ describe('trusted publishing workflow security invariants', () => {
 
   it('has one exact release-candidate tag trigger and rejects private repositories', () => {
     expect(workflow).toContain('name: Trusted Publish')
-    expect(workflow).toContain("- 'v1.0.0-alpha.21'")
+    expect(workflow).toContain("- 'v1.0.0-alpha.22'")
     expect(workflow).not.toContain("- 'v*'")
     expect(workflow).not.toContain('workflow_dispatch')
-    expect(buildJob).toContain("github.ref == 'refs/tags/v1.0.0-alpha.21'")
+    expect(buildJob).toContain("github.ref == 'refs/tags/v1.0.0-alpha.22'")
     expect(buildJob).toContain('github.event.repository.private == false')
-    expect(buildJob).toContain('test "$REF" = refs/tags/v1.0.0-alpha.21')
+    expect(buildJob).toContain('test "$REF" = refs/tags/v1.0.0-alpha.22')
     expect(buildJob).toContain('test "$REPOSITORY_PRIVATE" = false')
-    expect(buildJob).toContain('test "$PACKAGE_VERSION" = 1.0.0-alpha.21')
+    expect(buildJob).toContain('test "$PACKAGE_VERSION" = 1.0.0-alpha.22')
   })
 
   it('uses the exact reviewed Node and npm versions', () => {
@@ -74,7 +74,7 @@ describe('trusted publishing workflow security invariants', () => {
     expect(publishJob).toContain('ARTIFACT_DIGEST')
     expect(publishJob).toContain('sha256sum --check')
     expect(publishJob).toContain('assert.deepEqual')
-    expect(publishJob).toContain('test "$PACKAGE_VERSION" = 1.0.0-alpha.21')
+    expect(publishJob).toContain('test "$PACKAGE_VERSION" = 1.0.0-alpha.22')
   })
 
   it('keeps checkout, project dependencies, and repository scripts out of publishing', () => {

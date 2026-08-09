@@ -5,7 +5,7 @@ document confirms that `invoml` is publicly published, installable, or
 appropriate for production use.
 
 `trusted-publish.yml` may run only when the public canonical repository receives
-the exact `v1.0.0-alpha.21` tag. Its unprivileged `validate-build` job checks
+the exact `v1.0.0-alpha.22` tag. Its unprivileged `validate-build` job checks
 that package name and version, runs the lock, test, build, package-content, and
 privacy gates, and uploads one tarball with a SHA-256 checksum and metadata.
 
