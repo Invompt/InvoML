@@ -1,7 +1,7 @@
 # Releasing InvoML
 
 InvoML is a public prerelease package. The current repository version is
-`invoml@1.0.0-alpha.23`, prepared for the `next` dist-tag. Registry state is an
+`invoml@1.0.0-alpha.24`, prepared for the `next` dist-tag. Registry state is an
 external fact and must be verified with `npm view invoml dist-tags versions --json`;
 this source document never proves publication. The `latest` dist-tag intentionally
 remains on the older `1.0.0-alpha.5` prerelease, so user documentation must install
@@ -14,7 +14,7 @@ or reuse of an existing version.
 ## Current trusted-publishing binding
 
 `.github/workflows/trusted-publish.yml` is intentionally bound to the single
-`v1.0.0-alpha.23` tag and matching package version. That binding is a release
+`v1.0.0-alpha.24` tag and matching package version. That binding is a release
 candidate contract, not evidence that the tag or npm version already exists and
 not a reusable "publish latest changes" command. npm versions and Git tags are
 immutable once published.

@@ -1,0 +1,32 @@
+name: Public README policy
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'README.md'
+      - 'examples/multi-format/README.md'
+      - 'scripts/validate-public-readmes.mjs'
+      - '.github/workflows/public-readme-policy.yml'
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version: 22.22.0
+          package-manager-cache: false
+
+      - name: Validate public README surfaces
+        run: node scripts/validate-public-readmes.mjs

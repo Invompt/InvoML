@@ -1,6 +1,6 @@
 {
   "name": "invoml",
-  "version": "1.0.0-alpha.23",
+  "version": "1.0.0-alpha.24",
   "description": "InvoML — Invoice Markup Language: parse, validate, calculate, format, and render invoices",
   "type": "module",
   "packageManager": "npm@11.11.0",

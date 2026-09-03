@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.0.0-alpha.24] - 2026-09-03
+
+### Changed
+- **Public documentation governance** — align the public README and example documentation with the alpha release channel, assign explicit ownership for release-facing README surfaces, and validate those surfaces in CI
+
 ## [1.0.0-alpha.23] - 2026-08-09
 
 ### Changed
