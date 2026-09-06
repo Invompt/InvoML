@@ -1,0 +1,4 @@
+# Orca IDE worktree config
+worktree:
+  sharedDirectories:
+    - node_modules
