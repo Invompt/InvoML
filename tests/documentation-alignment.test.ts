@@ -73,7 +73,7 @@ describe('active documentation alignment', () => {
 
   it('requires live registry verification instead of claiming publication from source', () => {
     expect(releaseGuide).toContain(
-      '`invoml@1.0.0-alpha.24`, prepared for the `next` dist-tag.',
+      '`invoml@1.0.0-alpha.25`, prepared for the `next` dist-tag.',
     )
     expect(releaseGuide).toContain(
       'this source document never proves publication',

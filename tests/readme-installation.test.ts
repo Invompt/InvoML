@@ -22,7 +22,7 @@ describe('README installation contract', () => {
   })
 
   it('uses the explicit next channel for the published prerelease', () => {
-    expect(packageJson.version).toBe('1.0.0-alpha.24')
+    expect(packageJson.version).toBe('1.0.0-alpha.25')
     expect(readme).not.toMatch(
       /(?:npm\s+(?:view|install|i)\s+|npx(?:\s+--yes)?\s+)@invompt\/invoml@\d+\.\d+\.\d+(?:-[^\s`]+)?/m,
     )

@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.0.0-alpha.25] - 2026-09-07
+
+### Fixed
+- **Security: prototype-chain `style.order` entries no longer crash renderers** — section lookups now use `Object.hasOwn` instead of bracket access, so a `style.order` entry like `section:constructor` can no longer resolve an inherited `Object.prototype` member and crash `toHTML`/`toMarkdown`; `validate()` now flags such entries as an unknown section instead of accepting the document. Behavior change: `validate()` now runs full `style` validation (previously it never inspected `doc.style`), so any invalid template name, date format, block token, duplicate `order` entry, or unknown section reference is now an error, and style checks may add warning-level issues to previously issue-free documents.
+- **Security: non-finite money is rejected instead of propagating** — `validate()` now rejects non-finite tax rates, discount values, and `prepaidAmount`, and rejects inclusive tax rates `<= -100` that zero the back-out divisor; `calculate()` asserts every computed total is finite and throws `CalculationError` (`NON_FINITE_TOTAL`) instead of returning `NaN`/`Infinity` money. Behavior change: `validate()` rejects documents that previously passed, and `calculate()` throws where it previously returned corrupted totals.
+- **Lock resolution** — updates the pinned `fast-uri` registry resolution to 3.1.7 for GHSA-jqff-g426-hqxp
+
 ## [1.0.0-alpha.24] - 2026-09-03
 
 ### Changed
