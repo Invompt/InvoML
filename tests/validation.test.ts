@@ -312,3 +312,108 @@ describe('validate()', () => {
     expect(result.issues.length).toBeGreaterThan(0)
   })
 })
+
+// ── H1: prototype-chain section lookup ───────────────────────────────────────────────────────
+// `style.order` entries only need to match `section:<alphanumeric/hyphen/underscore>`, and
+// `Object.prototype` members like "constructor" match that pattern. Before this fix, `validate()`
+// never inspected `doc.style` at all, so `"section:constructor"` passed as `valid: true` with zero
+// issues — only to crash `toHTML`/`toMarkdown` at render time via a prototype-chain lookup that
+// resolves `sections.constructor` to `Object` instead of `undefined`.
+describe('validate() — style.order prototype-chain guard (H1)', () => {
+  it('flags "section:constructor" the same way it flags a genuinely unknown section', () => {
+    const doc: InvoMLDocument = {
+      ...clone(validDoc),
+      sections: { legit: { title: 'Legit', content: 'Real section.' } },
+      style: { order: ['header', 'items', 'section:constructor'] },
+    }
+    const result = validate(doc)
+    expect(result.valid).toBe(false)
+    expect(result.issues).toContainEqual(
+      expect.objectContaining({ level: 'error', code: 'STYLE_INVALID', path: 'style' }),
+    )
+    expect(result.issues.some(i => i.message.includes('unknown section "constructor"'))).toBe(true)
+  })
+
+  it.each(['toString', 'hasOwnProperty', 'valueOf'] as const)(
+    'flags "section:%s" (another inherited Object.prototype member)',
+    key => {
+      const doc: InvoMLDocument = {
+        ...clone(validDoc),
+        style: { order: ['header', 'items', `section:${key}`] },
+      }
+      const result = validate(doc)
+      expect(result.valid).toBe(false)
+    },
+  )
+
+  it('accepts "section:<key>" when the key is an authored, own-property section', () => {
+    const doc: InvoMLDocument = {
+      ...clone(validDoc),
+      sections: { terms: { title: 'Terms', content: 'Net 30.' } },
+      style: { order: ['header', 'items', 'section:terms'] },
+    }
+    const result = validate(doc)
+    expect(result.issues.filter(i => i.code === 'STYLE_INVALID')).toHaveLength(0)
+  })
+})
+
+// ── H2: non-finite rate / prepaidAmount / discount value ────────────────────────────────────
+describe('validate() — non-finite money fields (H2)', () => {
+  it('errors on an inclusive tax rate of exactly -100 (zero back-out divisor)', () => {
+    const doc = clone(validDoc)
+    doc.meta.tax = { label: 'VAT', rate: -100, inclusive: true }
+    const result = validate(doc)
+    expect(result.valid).toBe(false)
+    expect(result.issues).toContainEqual(
+      expect.objectContaining({ level: 'error', code: 'INVALID_INCLUSIVE_TAX_RATE', path: 'meta.tax.rate' }),
+    )
+  })
+
+  it('errors on a NaN tax rate', () => {
+    const doc: InvoMLDocument = { ...clone(validDoc) }
+    doc.meta.tax = { label: 'VAT', rate: Number.NaN }
+    const result = validate(doc)
+    expect(result.valid).toBe(false)
+    expect(result.issues).toContainEqual(
+      expect.objectContaining({ level: 'error', code: 'INVALID_TAX_RATE', path: 'meta.tax.rate' }),
+    )
+  })
+
+  it('errors on prepaidAmount: 1e309 (JSON.parse folds this to Infinity, Ajv accepts it)', () => {
+    const doc: InvoMLDocument = { ...clone(validDoc), prepaidAmount: JSON.parse('1e309') }
+    expect(Number.isFinite(doc.prepaidAmount)).toBe(false)
+    const result = validate(doc)
+    expect(result.valid).toBe(false)
+    expect(result.issues).toContainEqual(
+      expect.objectContaining({ level: 'error', code: 'INVALID_PREPAID_AMOUNT', path: 'prepaidAmount' }),
+    )
+  })
+
+  it('errors on a non-finite structured discount value on an item', () => {
+    const doc = clone(validDoc)
+    doc.items = [{ description: 'Widget', quantity: 1, unitPrice: 10, discount: { type: 'fixed', value: Number.NaN } }]
+    const result = validate(doc)
+    expect(result.valid).toBe(false)
+    expect(result.issues).toContainEqual(
+      expect.objectContaining({ level: 'error', code: 'INVALID_DISCOUNT_VALUE', path: 'items[0].discount.value' }),
+    )
+  })
+
+  it('errors on a non-finite document-level discount value', () => {
+    const doc = clone(validDoc)
+    doc.discounts = [{ type: 'percentage', value: Number.POSITIVE_INFINITY }]
+    const result = validate(doc)
+    expect(result.valid).toBe(false)
+    expect(result.issues).toContainEqual(
+      expect.objectContaining({ level: 'error', code: 'INVALID_DISCOUNT_VALUE', path: 'discounts[0].value' }),
+    )
+  })
+
+  it('accepts a finite, non-extreme tax rate and prepaidAmount', () => {
+    const doc = clone(validDoc)
+    doc.meta.tax = { label: 'VAT', rate: 20 }
+    doc.prepaidAmount = 10
+    const result = validate(doc)
+    expect(result.issues.filter(i => i.level === 'error')).toHaveLength(0)
+  })
+})

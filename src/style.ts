@@ -7,6 +7,7 @@ import type {
   InvoMLStyle,
   InvoMLDateFormat,
   InvoMLTemplate,
+  InvoMLSection,
   BaseValidationResult,
 } from './types.js'
 import { DATE_FORMAT_PRESETS } from './date.js'
@@ -31,6 +32,26 @@ export interface ResolvedHidden {
 /** Extract the section key from a block name like `'section:terms'`, or return `null` if the block is not a section. */
 export function parseSectionKey(block: string): string | null {
   return block.startsWith(SECTION_PREFIX) ? block.slice(SECTION_PREFIX.length) : null
+}
+
+/**
+ * Look up a section by key, treating any key that is not an *own* property of `sections`
+ * as absent — same outcome as a genuinely missing section.
+ *
+ * A plain lookup (`sections?.[key]`) resolves inherited `Object.prototype` members
+ * (`constructor`, `toString`, `hasOwnProperty`, `valueOf`, ...) to truthy, non-`InvoMLSection`
+ * values. Since `style.order`/`style.blocks`/`style.hidden` section keys only need to match
+ * `/^[a-zA-Z0-9_-]+$/` (no `__proto__`/`[[Prototype]]` risk, but plenty of prototype *members*
+ * match that pattern), every section lookup MUST go through this helper instead of bracket
+ * access, or a document that passed validation can crash renderers with
+ * `TypeError: Cannot read properties of undefined`.
+ */
+export function getSection(
+  sections: Record<string, InvoMLSection> | undefined,
+  key: string,
+): InvoMLSection | undefined {
+  if (!sections || !Object.hasOwn(sections, key)) return undefined
+  return sections[key]
 }
 
 /** The fixed set of built-in block names that may appear in `style.order` and `style.blocks`. */

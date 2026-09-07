@@ -9,6 +9,7 @@ import {
   RESERVED_BLOCK_NAMES,
   SECTION_PREFIX,
   TEMPLATE_NAMES,
+  getSection,
   parseSectionKey,
   resolveStyle,
 } from './style.js'
@@ -132,7 +133,7 @@ function normalizeHiddenReference(value: unknown, doc: InvoMLDocument): string |
 
   if (entry.startsWith(SECTION_PREFIX)) {
     const key = entry.slice(SECTION_PREFIX.length)
-    return SECTION_KEY_RE.test(key) && doc.sections?.[key] !== undefined ? entry : null
+    return SECTION_KEY_RE.test(key) && getSection(doc.sections, key) !== undefined ? entry : null
   }
   if (entry.startsWith('column:')) {
     return (COLUMN_NAMES as ReadonlyArray<string>).includes(entry.slice('column:'.length)) ? entry : null
@@ -454,7 +455,7 @@ function hasBlockData(
     case 'notes': return Boolean(doc.notes)
     default: {
       const sectionKey = parseSectionKey(block)
-      return sectionKey !== null && doc.sections?.[sectionKey] !== undefined
+      return sectionKey !== null && getSection(doc.sections, sectionKey) !== undefined
     }
   }
 }

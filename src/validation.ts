@@ -1,8 +1,9 @@
 // src/validation.ts
 
-import type { InvoMLDocument, BaseValidationResult } from './types.js'
+import type { InvoMLDocument, InvoMLDiscount, BaseValidationResult } from './types.js'
 import { calculate } from './calculator.js'
 import { resolveTaxConfig } from './tax.js'
+import { validateStyle } from './style.js'
 
 /** A single domain-level validation finding with a severity level and JSON-path location. */
 export interface ValidationIssue {
@@ -102,6 +103,31 @@ function validateCurrency(doc: InvoMLDocument, issues: ValidationIssue[]): void 
   }
 }
 
+/**
+ * Validate the `value` of a discount (item-level `item.discount` or document-level
+ * `doc.discounts[]`). Shorthand string discounts (e.g. `"10%"`) always parse to a finite
+ * number in `parseDiscount`, so only the structured object form needs a runtime check —
+ * `{ value: NaN }`/`{ value: Infinity }` cannot be expressed in JSON via `parse()`, but
+ * `1e309` can (`JSON.parse` folds it to `Infinity`), and any of these can be constructed
+ * directly by a programmatic consumer (the primary integration mode for the product/MCP).
+ */
+function validateDiscountValue(
+  discount: string | InvoMLDiscount | undefined,
+  path: string,
+  issues: ValidationIssue[],
+): void {
+  if (discount === undefined || typeof discount === 'string') return
+  if (!Number.isFinite(discount.value)) {
+    addIssue(
+      issues,
+      'error',
+      `${path}.value`,
+      'INVALID_DISCOUNT_VALUE',
+      `Discount value must be a finite number. Got ${discount.value}.`,
+    )
+  }
+}
+
 function validateItems(doc: InvoMLDocument, issues: ValidationIssue[]): void {
   if (!doc.items || doc.items.length === 0) {
     addIssue(issues, 'error', 'items', 'EMPTY_ITEMS', 'The items array must contain at least one item.')
@@ -138,6 +164,48 @@ function validateItems(doc: InvoMLDocument, issues: ValidationIssue[]): void {
         `Item at index ${i} has a non-finite unit price: ${item.unitPrice}.`,
       )
     }
+
+    validateDiscountValue(item.discount, `items[${i}].discount`, issues)
+  }
+}
+
+function validateDocumentDiscounts(doc: InvoMLDocument, issues: ValidationIssue[]): void {
+  doc.discounts?.forEach((discount, index) => {
+    validateDiscountValue(discount, `discounts[${index}]`, issues)
+  })
+}
+
+function validatePrepaidAmount(doc: InvoMLDocument, issues: ValidationIssue[]): void {
+  if (doc.prepaidAmount === undefined) return
+  if (!Number.isFinite(doc.prepaidAmount)) {
+    addIssue(
+      issues,
+      'error',
+      'prepaidAmount',
+      'INVALID_PREPAID_AMOUNT',
+      `prepaidAmount must be a finite number. Got ${doc.prepaidAmount}.`,
+    )
+  }
+}
+
+/**
+ * Surface `validateStyle` findings (structural/token errors plus hidden-reference warnings)
+ * through the domain `validate()` verdict. Previously `validate()` never inspected
+ * `doc.style` at all, so a `style.order` entry like `"section:constructor"` — which matches
+ * the section-key pattern but is not an authored section — passed as `valid: true` with zero
+ * issues, only to crash `toHTML`/`toMarkdown` at render time via a prototype-chain lookup.
+ * Passing `Object.keys(doc.sections ?? {})` (own keys only) as the known-section allowlist
+ * makes `validateStyle` reject that entry exactly like it rejects a genuinely unknown section.
+ */
+function validateDocumentStyle(doc: InvoMLDocument, issues: ValidationIssue[]): void {
+  if (!doc.style) return
+  const sectionNames = Object.keys(doc.sections ?? {})
+  const result = validateStyle(doc.style, sectionNames)
+  for (const message of result.errors) {
+    addIssue(issues, 'error', 'style', 'STYLE_INVALID', message)
+  }
+  for (const message of result.warnings) {
+    addIssue(issues, 'warning', 'style', 'STYLE_WARNING', message)
   }
 }
 
@@ -193,6 +261,35 @@ function validateTaxConfig(doc: InvoMLDocument, issues: ValidationIssue[]): void
       )
     }
   }
+
+  // SPEC.md does not document a bound on `rate`. A non-finite rate (NaN/Infinity — both
+  // reachable via JSON: `1e309` parses to `Infinity`) always propagates into a NaN/Infinite
+  // total. When the resolved config is inclusive (and not compound — compound tax never uses
+  // the inclusive back-out) the calculator divides by `1 + rate/100`; a rate of exactly -100
+  // zeroes that divisor and a rate below it flips its sign, so both are rejected here.
+  const taxIsFull = doc.meta.tax !== undefined && 'categories' in doc.meta.tax
+  resolvedTax.categories.forEach((category, index) => {
+    const path = taxIsFull ? `meta.tax.categories[${index}].rate` : 'meta.tax.rate'
+    if (!Number.isFinite(category.rate)) {
+      addIssue(
+        issues,
+        'error',
+        path,
+        'INVALID_TAX_RATE',
+        `Tax category "${category.id}" has a non-finite rate: ${category.rate}.`,
+      )
+      return
+    }
+    if (resolvedTax.inclusive && !resolvedTax.compound && !category.exempt && category.rate <= -100) {
+      addIssue(
+        issues,
+        'error',
+        path,
+        'INVALID_INCLUSIVE_TAX_RATE',
+        `Tax category "${category.id}" has rate ${category.rate}; an inclusive rate must be greater than -100 so the tax back-out divisor stays positive.`,
+      )
+    }
+  })
 
   if (itemsWithoutExplicitCategory === 0) return
 
@@ -355,6 +452,9 @@ export function validate(doc: InvoMLDocument): DomainValidationResult {
   validateItems(doc, issues)
   const parsedDates = parseMetaDates(doc, issues)
   validateTaxConfig(doc, issues)
+  validatePrepaidAmount(doc, issues)
+  validateDocumentDiscounts(doc, issues)
+  validateDocumentStyle(doc, issues)
   addWarningRules(doc, issues, parsedDates)
   validatePaymentAdvice(doc, issues)
 

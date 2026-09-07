@@ -372,20 +372,31 @@ describe('payment advice', () => {
     }))
   })
 
+  // `calculate()` now throws `CalculationError` for a non-finite `prepaidAmount` (H2 hardening:
+  // it never hands back a NaN/Infinite total) instead of silently returning a non-finite
+  // `amountDue`. So this case is now caught as a calculation failure — same as an unresolvable
+  // tax category — rather than surfacing as a computed-but-invalid amount.
   it.each([Number.NaN, Number.POSITIVE_INFINITY])(
-    'rejects a non-finite computed amount due (%s)',
+    'rejects a non-finite prepaidAmount as a calculation failure (%s)',
     prepaidAmount => {
       const invalid = invoice({ prepaidAmount, paymentAdvice: {} })
       const result = renderHTML(invalid)
       expect(result.output).not.toContain('data-invoml-payment-advice="computed"')
       expect(result.diagnostics).toContainEqual(expect.objectContaining({
         path: 'paymentAdvice.amountDue',
-        code: 'PAYMENT_ADVICE_INVALID_AMOUNT_DUE',
+        code: 'PAYMENT_ADVICE_CALCULATION_FAILED',
       }))
       expect(validate(invalid).issues).toContainEqual(expect.objectContaining({
         level: 'error',
         path: 'paymentAdvice',
-        code: 'PAYMENT_ADVICE_INVALID_AMOUNT_DUE',
+        code: 'PAYMENT_ADVICE_CALCULATION_FAILED',
+      }))
+      // The document-level prepaidAmount is now also flagged directly (H2: validate() checks
+      // finiteness for rate/prepaidAmount/discount values, not just downstream computed amounts).
+      expect(validate(invalid).issues).toContainEqual(expect.objectContaining({
+        level: 'error',
+        path: 'prepaidAmount',
+        code: 'INVALID_PREPAID_AMOUNT',
       }))
     },
   )

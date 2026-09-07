@@ -2,7 +2,7 @@
 
 import type { InvoMLDocument, InvoMLParty } from './types.js'
 import type { ResolvedPaymentAdvice } from './presentation-internal.js'
-import { resolveStyle, parseSectionKey } from './style.js'
+import { resolveStyle, parseSectionKey, getSection } from './style.js'
 import type { ResolvedHidden } from './style.js'
 import { buildFormatter, formatDiscount, formatDocumentType } from './format.js'
 import { PARTY_DETAIL_FIELDS, PAYMENT_FIELDS, detectItemColumns, buildTotalsRows } from './render-shared.js'
@@ -76,7 +76,7 @@ function renderBlock(
   } else {
     const sectionKey = parseSectionKey(block)
     if (sectionKey === null) return
-    const section = doc.sections?.[sectionKey]
+    const section = getSection(doc.sections, sectionKey)
     if (section) {
       lines.push(`### ${section.title}`)
       lines.push('')

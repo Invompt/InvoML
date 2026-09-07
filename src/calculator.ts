@@ -12,6 +12,34 @@ interface CalculationSnapshot {
   totals: InvoMLTotals
 }
 
+/**
+ * Defense in depth: `calculate()` is a standalone public API and can be called directly on a
+ * document that never passed through `validate()`. A non-finite input (a NaN/Infinite tax
+ * `rate`, `prepaidAmount`, or discount `value` — decimal.js propagates these as NaN/Infinite
+ * decimals rather than throwing) must never silently surface as a NaN/Infinite money total.
+ * Every top-level numeric field in the computed totals is checked here; any non-finite value
+ * throws a `CalculationError` instead of handing back corrupted money to the caller.
+ */
+function assertFiniteTotals(totals: InvoMLTotals): void {
+  const fields: Array<[string, number]> = [
+    ['subtotal', totals.subtotal],
+    ['afterDiscounts', totals.afterDiscounts],
+    ['taxTotal', totals.taxTotal],
+    ['withholdingTotal', totals.withholdingTotal],
+    ['total', totals.total],
+    ['prepaidAmount', totals.prepaidAmount ?? 0],
+    ['amountDue', totals.amountDue],
+  ]
+  for (const [name, value] of fields) {
+    if (!Number.isFinite(value)) {
+      throw new CalculationError(
+        'NON_FINITE_TOTAL',
+        `Calculated "${name}" is not finite (${value}). Check tax rate, discount, and prepaidAmount inputs for non-finite values.`,
+      )
+    }
+  }
+}
+
 function calculateSnapshot(doc: InvoMLDocument): CalculationSnapshot {
   const taxConfig = resolveTaxConfig(doc.meta.tax)
   const dp = getCurrencyDecimals(doc.meta.currency)
@@ -181,20 +209,20 @@ function calculateSnapshot(doc: InvoMLDocument): CalculationSnapshot {
   const prepaid = doc.prepaidAmount ?? 0
   const amountDue = round(new InternalDecimal(total.toString()).minus(prepaid.toString()).toNumber())
 
-  return {
-    items,
-    totals: {
-      subtotal,
-      discountDetails: discountDetails.length > 0 ? discountDetails : undefined,
-      afterDiscounts,
-      taxDetails: taxDetails.length > 0 ? taxDetails : undefined,
-      taxTotal,
-      withholdingTotal,
-      total,
-      prepaidAmount: prepaid,
-      amountDue,
-    },
+  const totals: InvoMLTotals = {
+    subtotal,
+    discountDetails: discountDetails.length > 0 ? discountDetails : undefined,
+    afterDiscounts,
+    taxDetails: taxDetails.length > 0 ? taxDetails : undefined,
+    taxTotal,
+    withholdingTotal,
+    total,
+    prepaidAmount: prepaid,
+    amountDue,
   }
+  assertFiniteTotals(totals)
+
+  return { items, totals }
 }
 
 /** Compute all totals for an InvoML document using arbitrary-precision decimal arithmetic. Returns subtotal, per-category tax breakdowns, discount details, and amount due. */

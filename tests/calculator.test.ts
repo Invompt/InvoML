@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { calculate } from '../src/calculator.js'
+import { CalculationError } from '../src/types.js'
 import type { InvoMLDocument } from '../src/types.js'
 
 function makeDoc(overrides: Partial<InvoMLDocument> = {}): InvoMLDocument {
@@ -197,5 +198,58 @@ describe('calculate', () => {
     expect(r.taxTotal).toBe(200)
     // inclusive total = afterDiscounts = 1700
     expect(r.total).toBe(1700)
+  })
+})
+
+// ── H2: non-finite inputs must never produce a silent NaN/Infinite total ────────────────────
+// `calculate()` is a standalone public API and can be called directly on a document that never
+// passed through `validate()`. decimal.js propagates a non-finite operand as a NaN/Infinite
+// decimal rather than throwing, so without this guard these cases silently returned totals like
+// `{ taxTotal: NaN, amountDue: null }` (NaN serializes as `null` in JSON) with no error at all.
+describe('calculate — non-finite total defense in depth', () => {
+  it('throws for an inclusive tax rate of exactly -100 (zero divisor)', () => {
+    const doc = makeDoc({
+      meta: {
+        documentType: 'invoice', number: 'T', issueDate: '2026-01-01', currency: 'USD',
+        tax: { label: 'VAT', rate: -100, inclusive: true },
+      },
+    })
+    expect(() => calculate(doc)).toThrow(/not finite/)
+  })
+
+  it('throws for a NaN tax rate', () => {
+    const doc = makeDoc({
+      meta: {
+        documentType: 'invoice', number: 'T', issueDate: '2026-01-01', currency: 'USD',
+        tax: { label: 'VAT', rate: Number.NaN },
+      },
+    })
+    expect(() => calculate(doc)).toThrow(/not finite/)
+  })
+
+  it('throws for prepaidAmount: 1e309 (JSON.parse folds this to Infinity)', () => {
+    // `JSON.parse('1e309')` produces `Infinity` and Ajv's `"type": "number"` accepts it —
+    // this is reachable through parse() + Ajv schema validation, not just direct construction.
+    const doc = makeDoc({ prepaidAmount: JSON.parse('1e309') })
+    expect(Number.isFinite(doc.prepaidAmount)).toBe(false)
+    expect(() => calculate(doc)).toThrow(/"prepaidAmount" is not finite/)
+  })
+
+  it('throws for a non-finite structured discount value', () => {
+    const doc = makeDoc({
+      items: [{ description: 'Item', quantity: 1, unitPrice: 100, discount: { type: 'fixed', value: Number.NaN } }],
+    })
+    expect(() => calculate(doc)).toThrow(CalculationError)
+  })
+
+  it('throws CalculationError with a machine-readable code', () => {
+    const doc = makeDoc({ prepaidAmount: Number.POSITIVE_INFINITY })
+    try {
+      calculate(doc)
+      expect.fail('expected calculate() to throw')
+    } catch (error) {
+      expect(error).toBeInstanceOf(CalculationError)
+      expect((error as CalculationError).code).toBe('NON_FINITE_TOTAL')
+    }
   })
 })

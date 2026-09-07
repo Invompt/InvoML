@@ -203,6 +203,26 @@ describe('toMarkdown — block ordering', () => {
     expect(md).not.toContain('missing')
   })
 
+  // H1: "section:constructor" matches the section-key pattern but is an inherited
+  // Object.prototype member, not an authored section. A plain `sections?.[key]` lookup
+  // resolved it to a truthy, non-InvoMLSection value and rendered `### undefined` — visible
+  // content not expressed in the document. It must be treated as an absent section instead.
+  it.each(['constructor', 'toString', 'hasOwnProperty', 'valueOf'])(
+    'treats "section:%s" as absent instead of rendering "### undefined"',
+    key => {
+      const doc: InvoMLDocument = {
+        $invoml: '1.0',
+        meta: { documentType: 'invoice', number: 'INV-Q', issueDate: '2026-01-01', currency: 'USD' },
+        items: [{ description: 'Item', quantity: 1, unitPrice: 100 }],
+        sections: { legit: { title: 'Legit', content: 'Real section.' } },
+        style: { order: ['header', 'items', `section:${key}`, 'totals'] },
+      }
+      const md = toMarkdown(withTotals(doc))
+      expect(md).not.toContain('undefined')
+      expect(md).not.toContain(key)
+    },
+  )
+
   it('renders custom sections at the correct position in default order (after totals)', () => {
     const doc: InvoMLDocument = {
       $invoml: '1.0',

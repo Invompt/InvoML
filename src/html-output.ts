@@ -8,7 +8,7 @@ import type {
   InvoMLTotals,
 } from './types.js'
 import type { ResolvedPaymentAdvice } from './presentation-internal.js'
-import { resolveStyle, parseSectionKey, resolvePageFooter } from './style.js'
+import { resolveStyle, parseSectionKey, resolvePageFooter, getSection } from './style.js'
 import { resolveTheme } from './themes.js'
 import { buildFormatter, formatDiscount, formatDocumentType } from './format.js'
 import { escapeHtml, processInline, processMarkdown } from './markdown.js'
@@ -434,7 +434,7 @@ export function renderHTMLDocumentInternal(
     } else {
       const sectionKey = parseSectionKey(block)
       if (sectionKey !== null) {
-        const section = renderDoc.sections?.[sectionKey]
+        const section = getSection(renderDoc.sections, sectionKey)
         if (section) renderedBlocks.push({
           html: renderSection(sectionKey, section, blockStyle),
           span: blockStyle.span ?? 'full',

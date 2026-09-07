@@ -473,6 +473,27 @@ describe('toHTML — custom sections', () => {
     const html = toHTML(withTotals(doc))
     expect(html).not.toContain('data-invoml-block="section:missing"')
   })
+
+  // H1: `style.order` only needs to match `section:<alphanumeric/hyphen/underscore>`, and
+  // `Object.prototype` members like "constructor" match that pattern. A plain
+  // `sections?.[key]` lookup resolves the inherited member (e.g. `Object`) instead of
+  // `undefined`, so `renderSection` used to run with `section.title === undefined` and crash
+  // with `TypeError: Cannot read properties of undefined (reading 'replace')` inside
+  // `escapeHtml`. This document is schema-valid and was previously reported `valid: true` by
+  // `validate()` too (see tests/validation.test.ts) — rendering must not crash even when a
+  // caller bypasses validate() entirely.
+  it.each(['constructor', 'toString', 'hasOwnProperty', 'valueOf'])(
+    'does not crash when style.order references the inherited "section:%s"',
+    key => {
+      const doc = makeDoc({
+        sections: { legit: { title: 'Legit', content: 'Real section.' } },
+        style: { order: ['header', 'items', `section:${key}`] },
+      })
+      expect(() => toHTML(withTotals(doc))).not.toThrow()
+      const html = toHTML(withTotals(doc))
+      expect(html).not.toContain(`data-invoml-block="section:${key}"`)
+    },
+  )
 })
 
 // ─── Style system integration ─────────────────────────────────────────────────
