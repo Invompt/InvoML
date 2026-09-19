@@ -2,9 +2,9 @@
 
 # InvoML
 
-**Invoices as data. Totals you can trust. Output anywhere.**
+**Open invoice format & TypeScript toolkit** (contract / integrator path)
 
-An open invoice format and TypeScript toolkit for portable, deterministic invoices.
+Portable, deterministic invoice documents — used under Invompt; not the primary end-user product path.
 
 [Install](#installation) | [Quick start](#quick-start) | [Documentation](#documentation) | [Contributing](#contributing)
 
@@ -14,6 +14,13 @@ An open invoice format and TypeScript toolkit for portable, deterministic invoic
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue?style=flat-square)](LICENSE)
 
 </div>
+
+
+> **Looking for the Invompt product?**  
+> Continue anonymously · [`https://mcp.invompt.com/mcp`](https://mcp.invompt.com/mcp) · review-before-send  
+> *Turn AI-host work into invoices you review before send — Continue anonymously or OAuth via hosted MCP.*  
+> Site: [www.invompt.com](https://www.invompt.com) · Registry: [`com.invompt/invompt`](https://glama.ai/mcp/connectors/com.invompt/invompt) · Wellknown: [invompt-mcp](https://wellknown.network/agents/invompt-mcp)  
+> **InvoML** (this repo) is the open invoice **format / TypeScript contract toolkit** used under the hood — a secondary path for integrators, not the primary end-user product.
 
 ## Why InvoML
 
