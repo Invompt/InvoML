@@ -2,9 +2,9 @@
 
 # InvoML
 
-**Open invoice format & TypeScript toolkit** (contract / integrator path)
+**Invoices as data. Totals you can trust. Output anywhere.**
 
-Portable, deterministic invoice documents — used under Invompt; not the primary end-user product path.
+An open invoice format and TypeScript toolkit for portable, deterministic invoices (integrator path).
 
 [Install](#installation) | [Quick start](#quick-start) | [Documentation](#documentation) | [Contributing](#contributing)
 
@@ -16,16 +16,18 @@ Portable, deterministic invoice documents — used under Invompt; not the primar
 </div>
 
 
-> **Looking for the Invompt product?**  
-> Continue anonymously · [`https://mcp.invompt.com/mcp`](https://mcp.invompt.com/mcp) · review-before-send  
-> *Turn AI-host work into invoices you review before send — Continue anonymously or OAuth via hosted MCP.*  
-> Site: [www.invompt.com](https://www.invompt.com) · Registry: [`com.invompt/invompt`](https://glama.ai/mcp/connectors/com.invompt/invompt) · Wellknown: [invompt-mcp](https://wellknown.network/agents/invompt-mcp)  
-> **InvoML** (this repo) is the open invoice **format / TypeScript contract toolkit** used under the hood — a secondary path for integrators, not the primary end-user product.
+> **Product path (preferred):** Continue anonymously at
+> [`https://mcp.invompt.com/mcp`](https://mcp.invompt.com/mcp), then review before
+> send. Registry [`com.invompt/invompt`](https://glama.ai/mcp/connectors/com.invompt/invompt).
+> Site [www.invompt.com](https://www.invompt.com).
+> Wellknown [invompt-mcp](https://wellknown.network/agents/invompt-mcp).
+> InvoML is the invoice format and toolkit (secondary integrator path).
 
 ## Why InvoML
 
-Invoices should be easy to move between applications, safe to calculate, and readable by
-people as well as software. InvoML keeps authored facts in a compact JSON document and gives
+For product users, prefer hosted Invompt MCP (Continue anonymously) above. InvoML itself
+keeps invoices easy to move between applications, safe to calculate, and readable by people as
+well as software. InvoML keeps authored facts in a compact JSON document and gives
 your runtime clear responsibilities for validation, arithmetic, and presentation.
 
 - **Portable documents** - store and exchange one JSON format across applications and services.
