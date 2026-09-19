@@ -4,7 +4,7 @@
 
 **Invoices as data. Totals you can trust. Output anywhere.**
 
-An open invoice format and TypeScript toolkit for portable, deterministic invoices.
+An open invoice format and TypeScript toolkit for portable, deterministic invoices (integrator path).
 
 [Install](#installation) | [Quick start](#quick-start) | [Documentation](#documentation) | [Contributing](#contributing)
 
@@ -15,10 +15,19 @@ An open invoice format and TypeScript toolkit for portable, deterministic invoic
 
 </div>
 
+
+> **Product path (preferred):** Continue anonymously at
+> [`https://mcp.invompt.com/mcp`](https://mcp.invompt.com/mcp), then review before
+> send. Registry [`com.invompt/invompt`](https://glama.ai/mcp/connectors/com.invompt/invompt).
+> Site [www.invompt.com](https://www.invompt.com).
+> Wellknown [invompt-mcp](https://wellknown.network/agents/invompt-mcp).
+> InvoML is the invoice format and toolkit (secondary integrator path).
+
 ## Why InvoML
 
-Invoices should be easy to move between applications, safe to calculate, and readable by
-people as well as software. InvoML keeps authored facts in a compact JSON document and gives
+For product users, prefer hosted Invompt MCP (Continue anonymously) above. InvoML itself
+keeps invoices easy to move between applications, safe to calculate, and readable by people as
+well as software. InvoML keeps authored facts in a compact JSON document and gives
 your runtime clear responsibilities for validation, arithmetic, and presentation.
 
 - **Portable documents** - store and exchange one JSON format across applications and services.
