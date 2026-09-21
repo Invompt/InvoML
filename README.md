@@ -16,16 +16,18 @@ An open invoice format and TypeScript toolkit for portable, deterministic invoic
 </div>
 
 
-> **Product path (preferred):** Continue anonymously at
-> [`https://mcp.invompt.com/mcp`](https://mcp.invompt.com/mcp), then review before
-> send. Registry [`com.invompt/invompt`](https://glama.ai/mcp/connectors/com.invompt/invompt).
+> **Product path (preferred):** Connect with OAuth at
+> [`https://mcp.invompt.com/mcp`](https://mcp.invompt.com/mcp). Start without creating an account,
+> create one later to keep your invoices, and review before sending. Registry
+> [`com.invompt/invompt`](https://glama.ai/mcp/connectors/com.invompt/invompt).
 > Site [www.invompt.com](https://www.invompt.com).
 > Wellknown [invompt-mcp](https://wellknown.network/agents/invompt-mcp).
 > InvoML is the invoice format and toolkit (secondary integrator path).
 
 ## Why InvoML
 
-For product users, prefer hosted Invompt MCP (Continue anonymously) above. InvoML itself
+For product users, prefer hosted Invompt MCP above; its OAuth flow lets you start without creating
+an account and create one later to keep your invoices. InvoML itself
 keeps invoices easy to move between applications, safe to calculate, and readable by people as
 well as software. InvoML keeps authored facts in a compact JSON document and gives
 your runtime clear responsibilities for validation, arithmetic, and presentation.
